@@ -1837,6 +1837,122 @@ function useStoreInternal() {
     return Array.from(bySeller.values());
   };
 
+  // ==========================================================================
+  // Smart replenishment: per-seller daily average sales, minimum/target stock
+  // and suggested transfer quantity, plus a central-warehouse purchase
+  // suggestion. Formulas as specified by the owner:
+  //
+  //   VMD (venda média diária)   = unidades vendidas nos últimos 7 dias / dias em que vendeu
+  //   estoque_minimo             = ceil(VMD * 1.20)                    — dispara reposição
+  //   estoque_alvo               = ceil(VMD * 2 * 1.20)                — para onde repor
+  //   estoque_disponivel         = estoque_fisico - unidades_reservadas
+  //   status: disponivel <= minimo            -> vermelho (repor)
+  //           disponivel <= minimo * 1.30     -> amarelo (próximo)
+  //           caso contrário                  -> verde (ok)
+  //   quantidade_reposicao       = max(0, estoque_alvo - estoque_disponivel), limitada ao estoque central
+  //
+  //   Central: necessidade_semanal = soma(VMD) * dias_de_venda_semana * 1.20
+  //            pedido_fornecedor   = max(0, necessidade_semanal - estoque_central - estoque_com_vendedores - estoque_em_transito)
+  // ==========================================================================
+  const REPLENISHMENT_LOOKBACK_DAYS = 7;
+  const REPLENISHMENT_SAFETY_MARGIN = 1.2;
+  const REPLENISHMENT_TARGET_COVERAGE_DAYS = 2;
+  const REPLENISHMENT_YELLOW_MULTIPLIER = 1.3;
+  const REPLENISHMENT_SELLING_DAYS_PER_WEEK = 5;
+
+  const getReplenishmentAnalysis = () => {
+    const now = new Date();
+    const lookbackStart = new Date(now);
+    lookbackStart.setDate(lookbackStart.getDate() - REPLENISHMENT_LOOKBACK_DAYS);
+    const activeFlavors = state.flavors.filter(f => f.active);
+    const sellers = state.profiles.filter(p => p.role === 'seller' && p.status === 'active');
+
+    const centralLocation = state.locations.find(l => l.type === 'central');
+    const centralStock = centralLocation
+      ? activeFlavors.reduce((sum, f) => sum + getFlavorStock(centralLocation.id, f.id), 0)
+      : 0;
+
+    const perSeller = sellers.map(seller => {
+      const location = state.locations.find(l => l.type === 'seller' && l.seller_id === seller.id);
+      const physicalStock = location
+        ? activeFlavors.reduce((sum, f) => sum + getFlavorStock(location.id, f.id), 0)
+        : 0;
+
+      // Confirmed sales in the lookback window, and how many distinct days had at least one sale
+      const recentSales = state.sales.filter(
+        s => s.seller_id === seller.id && s.status === 'confirmed' && new Date(s.created_at) >= lookbackStart
+      );
+      const unitsSoldRecently = recentSales.reduce((sum, s) => sum + s.total_quantity, 0);
+      const sellingDays = new Set(recentSales.map(s => s.created_at.split('T')[0])).size;
+
+      const dailyAverage = sellingDays > 0 ? unitsSoldRecently / sellingDays : 0;
+
+      const reservedUnits = state.reservations
+        .filter(r => r.seller_id === seller.id && r.status === 'pending')
+        .reduce((sum, r) => sum + r.total_quantity, 0);
+
+      const availableStock = physicalStock - reservedUnits;
+
+      const minStock = Math.ceil(dailyAverage * REPLENISHMENT_SAFETY_MARGIN);
+      const targetStock = Math.ceil(dailyAverage * REPLENISHMENT_TARGET_COVERAGE_DAYS * REPLENISHMENT_SAFETY_MARGIN);
+
+      let status: 'ok' | 'warning' | 'critical' = 'ok';
+      if (availableStock <= minStock) status = 'critical';
+      else if (availableStock <= minStock * REPLENISHMENT_YELLOW_MULTIPLIER) status = 'warning';
+
+      const rawSuggestion = Math.max(0, targetStock - availableStock);
+      const suggestedUnits = status === 'ok' ? 0 : Math.min(rawSuggestion, centralStock);
+
+      const currentCoverageDays = dailyAverage > 0 ? availableStock / dailyAverage : null;
+      const coverageAfterReplenishment =
+        dailyAverage > 0 ? (availableStock + suggestedUnits) / dailyAverage : null;
+
+      return {
+        seller,
+        dailyAverage,
+        physicalStock,
+        reservedUnits,
+        availableStock,
+        minStock,
+        targetStock,
+        status,
+        suggestedUnits,
+        currentCoverageDays,
+        coverageAfterReplenishment
+      };
+    });
+
+    // Central warehouse: weekly demand across all sellers, with safety margin,
+    // net of what's already in the operation and already on order from suppliers.
+    const sellerStockTotal = perSeller.reduce((sum, s) => sum + s.physicalStock, 0);
+    const inTransitUnits = state.purchaseOrders
+      .filter(po => po.status === 'ordered' || po.status === 'partially_received')
+      .reduce(
+        (sum, po) => sum + po.items.reduce((s, i) => s + Math.max(0, i.quantity_ordered - i.quantity_received), 0),
+        0
+      );
+
+    const weeklyDemand =
+      perSeller.reduce((sum, s) => sum + s.dailyAverage, 0) * REPLENISHMENT_SELLING_DAYS_PER_WEEK;
+    const weeklyNeed = weeklyDemand * REPLENISHMENT_SAFETY_MARGIN;
+    const supplierOrderSuggestion = Math.max(
+      0,
+      Math.ceil(weeklyNeed - centralStock - sellerStockTotal - inTransitUnits)
+    );
+
+    return {
+      sellers: perSeller,
+      central: {
+        centralStock,
+        sellerStockTotal,
+        inTransitUnits,
+        weeklyDemand,
+        weeklyNeed,
+        supplierOrderSuggestion
+      }
+    };
+  };
+
   // Update Settings
   const updateSettings = (partial: Partial<OrganizationSettings>) => {
     setState(prev => ({
@@ -1890,6 +2006,7 @@ function useStoreInternal() {
     cancelReservation,
     deleteReservation,
     getPendingReservationSummary,
+    getReplenishmentAnalysis,
     updateSettings,
     resetDemoData
   };
