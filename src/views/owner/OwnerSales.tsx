@@ -144,9 +144,8 @@ export const OwnerSales: React.FC = () => {
                 <th className="py-3 px-3">Sabores</th>
                 <th className="py-3 px-3">Total Venda</th>
                 <th className="py-3 px-3">Custo (CMV)</th>
-                <th className="py-3 px-3">Lucro Bruto</th>
                 <th className="py-3 px-3">Comissão</th>
-                <th className="py-3 px-3">Resultado Dono</th>
+                <th className="py-3 px-3">Lucro</th>
                 <th className="py-3 px-3">Status</th>
                 <th className="py-3 px-4 text-right">Ação</th>
               </tr>
@@ -154,7 +153,7 @@ export const OwnerSales: React.FC = () => {
             <tbody className="divide-y divide-[#E7E5E2]/70">
               {sales.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-8 text-center text-[#6B6B6B]">
+                  <td colSpan={10} className="py-8 text-center text-[#6B6B6B]">
                     Nenhuma venda encontrada para o período ou filtros selecionados.
                   </td>
                 </tr>
@@ -185,13 +184,10 @@ export const OwnerSales: React.FC = () => {
                       <td className="py-3 px-3 text-[#6B6B6B] tabular-nums">
                         {formatCurrency(sale.total_cost)}
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#1B8A4F] tabular-nums">
-                        {formatCurrency(sale.gross_profit)}
-                      </td>
                       <td className="py-3 px-3 font-bold text-[#A9761F] tabular-nums">
                         {formatCurrency(sale.seller_commission)}
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#141414] tabular-nums">
+                      <td className="py-3 px-3 font-bold text-[#1B8A4F] tabular-nums">
                         {formatCurrency(sale.owner_gross_result)}
                       </td>
                       <td className="py-3 px-3">

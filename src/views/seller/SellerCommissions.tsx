@@ -27,7 +27,7 @@ export const SellerCommissions: React.FC = () => {
           Minhas Comissões & Ganhos
         </h1>
         <p className="text-xs text-[#6B6B6B] mt-0.5">
-          Extrato detalhado dos seus 50% de comissão sobre o lucro bruto das vendas
+          Extrato detalhado dos seus 50% de comissão sobre cada venda confirmada
         </p>
       </div>
 

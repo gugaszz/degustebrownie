@@ -54,7 +54,7 @@ export const SellerSales: React.FC = () => {
           <div className="text-2xl font-black text-[#1B8A4F] tabular-nums mt-1">
             {formatCurrency(totalCommission)}
           </div>
-          <span className="text-[11px] text-[#1B8A4F] mt-0.5 block font-semibold">50% do lucro bruto</span>
+          <span className="text-[11px] text-[#1B8A4F] mt-0.5 block font-semibold">Sua comissão por venda</span>
         </div>
       </div>
 

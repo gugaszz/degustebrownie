@@ -41,8 +41,9 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   const salesCount = filteredSales.length;
   const unitsSold = filteredSales.reduce((sum, s) => sum + s.total_quantity, 0);
   const averageTicket = salesCount > 0 ? grossRevenue / salesCount : 0;
-  const cogs = filteredSales.reduce((sum, s) => sum + s.total_cost, 0);
-  const grossProfit = grossRevenue - cogs;
+  // "Lucro" here is the owner's net result: revenue minus product cost minus the
+  // seller's commission, which is treated as a cost — not a separate "gross profit".
+  const netProfit = filteredSales.reduce((sum, s) => sum + s.owner_gross_result, 0);
 
   // Revenue trend across the selected period, one point per day
   const { startDate, endDate } = state.dateFilter;
@@ -128,10 +129,10 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           </div>
           <div className="text-left lg:text-right">
             <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/60">
-              Lucro bruto
+              Lucro
             </span>
             <div className="font-display text-2xl sm:text-3xl font-semibold text-white tabular-nums">
-              {formatCurrency(grossProfit)}
+              {formatCurrency(netProfit)}
             </div>
           </div>
         </div>

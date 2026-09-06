@@ -19,7 +19,7 @@ export const OwnerReports: React.FC = () => {
 
   // 1. Export Sales
   const exportSales = () => {
-    const headers = ['TXID Pix', 'Data/Hora', 'Vendedor', 'Qtd Total', 'Valor Total (R$)', 'Custo (R$)', 'Lucro Bruto (R$)', 'Comissão (R$)', 'Resultado Dono (R$)', 'Status'];
+    const headers = ['TXID Pix', 'Data/Hora', 'Vendedor', 'Qtd Total', 'Valor Total (R$)', 'Custo (R$)', 'Comissão (R$)', 'Lucro (R$)', 'Status'];
     const rows = state.sales.map(s => [
       s.pix_txid,
       formatDateTime(s.created_at),
@@ -27,7 +27,6 @@ export const OwnerReports: React.FC = () => {
       s.total_quantity,
       s.total_amount.toFixed(2),
       s.total_cost.toFixed(2),
-      s.gross_profit.toFixed(2),
       s.seller_commission.toFixed(2),
       s.owner_gross_result.toFixed(2),
       s.status

@@ -69,7 +69,7 @@ export const SellerHome: React.FC<SellerHomeProps> = ({ onNavigateTab }) => {
             Olá, {currentUser.name}!
           </h1>
           <p className="text-xs text-[#6B6B6B] max-w-lg">
-            Registre vendas em segundos gerando o QR Code Pix com sua comissão de 50% garantida sobre o lucro. Use o botão flutuante no canto da tela para começar.
+            Registre vendas em segundos gerando o QR Code Pix com sua comissão de 50% garantida por venda. Use o botão flutuante no canto da tela para começar.
           </p>
         </div>
       </div>

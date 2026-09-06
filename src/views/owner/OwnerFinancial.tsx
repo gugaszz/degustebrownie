@@ -76,8 +76,10 @@ export const OwnerFinancial: React.FC = () => {
         </button>
       </div>
 
-      {/* Main KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Main KPI Cards — the seller's commission is treated as a cost here, so
+          there is no separate "gross profit" line, just Faturamento, Comissões
+          (a cost) and the final Lucro. */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-4 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs">
           <span className="text-xs text-[#6B6B6B] font-medium block">Faturamento Bruto</span>
           <div className="text-2xl font-black text-[#111111] tabular-nums mt-1">
@@ -87,28 +89,20 @@ export const OwnerFinancial: React.FC = () => {
         </div>
 
         <div className="p-4 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs">
-          <span className="text-xs text-[#6B6B6B] font-medium block">Lucro Bruto (Após CMV)</span>
-          <div className="text-2xl font-black text-[#1B8A4F] tabular-nums mt-1">
-            {formatCurrency(grossProfit)}
+          <span className="text-xs text-[#6B6B6B] font-medium block">Comissões Vendedores (custo)</span>
+          <div className="text-2xl font-black text-[#A9761F] tabular-nums mt-1">
+            {formatCurrency(sellerCommissions)}
           </div>
           <span className="text-[11px] text-[#6B6B6B] mt-0.5 block">CMV: {formatCurrency(cogs)}</span>
         </div>
 
-        <div className="p-4 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs">
-          <span className="text-xs text-[#6B6B6B] font-medium block">Comissões Vendedores</span>
-          <div className="text-2xl font-black text-[#A9761F] tabular-nums mt-1">
-            {formatCurrency(sellerCommissions)}
-          </div>
-          <span className="text-[11px] text-[#6B6B6B] mt-0.5 block">50% do lucro bruto</span>
-        </div>
-
         <div className="p-4 rounded-3xl bg-[#141414] text-white border border-[#141414] shadow-md">
-          <span className="text-xs text-white/80 font-medium block">Resultado Líquido do Dono</span>
+          <span className="text-xs text-white/80 font-medium block">Lucro</span>
           <div className="text-2xl font-black text-white tabular-nums mt-1">
             {formatCurrency(netOperatingProfit)}
           </div>
           <span className="text-[11px] text-white/70 mt-0.5 block font-semibold">
-            Margem Líquida: {netMargin.toFixed(1)}%
+            Margem: {netMargin.toFixed(1)}%
           </span>
         </div>
       </div>
@@ -136,17 +130,9 @@ export const OwnerFinancial: React.FC = () => {
             </span>
           </div>
 
-          {/* (=) Lucro Bruto */}
-          <div className="flex justify-between items-center py-2 px-3 rounded-xl bg-green-50/50 border border-green-100">
-            <span className="font-bold text-[#1B8A4F]">(=) Lucro Bruto da Operação</span>
-            <strong className="text-[#1B8A4F] font-black text-sm tabular-nums">
-              {formatCurrency(grossProfit)}
-            </strong>
-          </div>
-
-          {/* (-) Comissões */}
+          {/* (-) Comissões, tratada como custo direto da venda */}
           <div className="flex justify-between items-center py-2 px-3">
-            <span className="text-[#6B6B6B]">(-) Comissões Pagas/Devidas aos Vendedores (50% do lucro)</span>
+            <span className="text-[#6B6B6B]">(-) Comissões Pagas/Devidas aos Vendedores (custo)</span>
             <span className="text-[#A9761F] font-bold tabular-nums">
               - {formatCurrency(sellerCommissions)}
             </span>
@@ -160,9 +146,9 @@ export const OwnerFinancial: React.FC = () => {
             </span>
           </div>
 
-          {/* (=) Lucro Líquido */}
+          {/* (=) Lucro */}
           <div className="flex justify-between items-center py-3 px-4 rounded-2xl bg-[#141414] text-white">
-            <span className="font-black text-sm">(=) Lucro Líquido Final do Proprietário</span>
+            <span className="font-black text-sm">(=) Lucro</span>
             <strong className="text-white font-black text-base tabular-nums">
               {formatCurrency(netOperatingProfit)}
             </strong>
