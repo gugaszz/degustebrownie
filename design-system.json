@@ -1,0 +1,149 @@
+{
+  "$schema": "design-system-v1",
+  "name": "iDraft Monochrome",
+  "source": "Reference dashboard screenshot (iDraft) supplied by the user, reverse-engineered by visual inspection",
+  "summary": "A stark, confident black/white/gray SaaS dashboard system: white cards with soft ambient shadows floating over a textured warm-gray canvas, one solid near-black 'hero' card for the primary metric, fully rounded pill buttons and badges, circular icon buttons, large corner radii, and a single geometric grotesk typeface carrying both display numbers and UI text. No brand hue — all color work is done with value (black/white/gray) plus one accent (pure black) used as the 'active/primary' color.",
+
+  "color": {
+    "canvas": {
+      "base": "#EFEDE9",
+      "texture_note": "Soft, blurred organic gray-beige blobs behind the whole layout (marble/frosted-glass look), not a flat fill",
+      "blob_a": "#DCDAD5",
+      "blob_b": "#F5F4F1",
+      "blob_c": "#C9C7C2"
+    },
+    "surface": {
+      "card": "#FFFFFF",
+      "card_subtle": "#F6F5F3",
+      "card_inset": "#F1EFEC",
+      "sidebar": "#FFFFFF"
+    },
+    "ink": {
+      "950": "#0A0A0A",
+      "900": "#111111",
+      "800": "#1A1A1A",
+      "700": "#2B2B2B",
+      "comment": "ink-900/950 is both the primary text color AND the solid fill for the one 'hero' dark card + primary buttons + active nav pill"
+    },
+    "text": {
+      "primary": "#111111",
+      "secondary": "#6B6B6B",
+      "tertiary": "#9A9A9A",
+      "inverse": "#FFFFFF",
+      "inverse_muted": "#B8B8B8"
+    },
+    "border": {
+      "default": "#E7E5E2",
+      "strong": "#D9D7D3",
+      "on_dark": "#2E2E2E"
+    },
+    "functional": {
+      "comment": "Not present in the reference image (it is fully monochrome) — kept at low saturation so status/alerts stay legible without breaking the monochrome mood.",
+      "success": "#1B8A4F",
+      "success_dark": "#145C36",
+      "warning": "#A9761F",
+      "danger": "#B3403D",
+      "danger_dark": "#8A2E2E"
+    }
+  },
+
+  "typography": {
+    "family": {
+      "primary": "'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif",
+      "comment": "Single geometric grotesk for everything — headings, numbers and body. No serif, no secondary display face."
+    },
+    "scale": {
+      "display_number": { "size": "40px", "weight": 800, "tracking": "-0.02em", "lineHeight": 1.0 },
+      "h1": { "size": "26px", "weight": 700, "tracking": "-0.01em", "lineHeight": 1.15 },
+      "h2": { "size": "18px", "weight": 700, "tracking": "-0.005em", "lineHeight": 1.2 },
+      "body": { "size": "14px", "weight": 500, "lineHeight": 1.5 },
+      "label": { "size": "12px", "weight": 600, "lineHeight": 1.3, "case": "none" },
+      "caption": { "size": "11px", "weight": 500, "lineHeight": 1.3 }
+    }
+  },
+
+  "radius": {
+    "sm": "10px",
+    "md": "14px",
+    "lg": "20px",
+    "xl": "24px",
+    "2xl": "28px",
+    "pill": "999px",
+    "comment": "Cards use xl/2xl. Buttons, badges and the search/notification icon buttons use pill (fully rounded)."
+  },
+
+  "shadow": {
+    "card": "0 1px 2px rgba(20,20,20,0.03), 0 20px 40px -12px rgba(20,20,20,0.10)",
+    "card_hover": "0 2px 4px rgba(20,20,20,0.04), 0 28px 56px -16px rgba(20,20,20,0.14)",
+    "floating_button": "0 8px 20px -6px rgba(20,20,20,0.20)",
+    "comment": "Very soft, large-blur, low-opacity ambient shadow — the elevation comes from blur+spread, not darkness."
+  },
+
+  "spacing": {
+    "card_padding": "24px",
+    "card_gap": "16px",
+    "section_gap": "24px",
+    "page_padding": "24px"
+  },
+
+  "components": {
+    "card_white": {
+      "background": "surface.card",
+      "radius": "radius.2xl",
+      "shadow": "shadow.card",
+      "border": "none",
+      "padding": "spacing.card_padding"
+    },
+    "card_hero_dark": {
+      "background": "ink.900",
+      "textColor": "text.inverse",
+      "radius": "radius.2xl",
+      "padding": "spacing.card_padding",
+      "usage": "exactly one per screen, for the single most important metric"
+    },
+    "stat_tile": {
+      "background": "surface.card_inset",
+      "radius": "radius.md",
+      "padding": "12px",
+      "textColor": "text.primary"
+    },
+    "button_primary": {
+      "background": "ink.900",
+      "textColor": "text.inverse",
+      "radius": "radius.pill",
+      "paddingX": "20px",
+      "paddingY": "10px",
+      "weight": 700
+    },
+    "button_icon_circle": {
+      "background": "surface.card",
+      "border": "1px solid border.default",
+      "radius": "radius.pill",
+      "size": "40px",
+      "iconColor": "text.primary"
+    },
+    "badge_pill_dark": {
+      "background": "ink.900",
+      "textColor": "text.inverse",
+      "radius": "radius.pill",
+      "paddingX": "10px",
+      "paddingY": "4px",
+      "weight": 700,
+      "size": "12px"
+    },
+    "nav_item": {
+      "default": { "background": "transparent", "textColor": "text.secondary" },
+      "active": { "background": "ink.900", "textColor": "text.inverse", "radius": "radius.pill" }
+    },
+    "progress_ring": {
+      "track": "surface.card_inset",
+      "value": "ink.900",
+      "thickness": "6px"
+    },
+    "chart_line": {
+      "primary": "ink.900",
+      "secondary": "border.strong",
+      "grid": "border.default"
+    }
+  }
+}

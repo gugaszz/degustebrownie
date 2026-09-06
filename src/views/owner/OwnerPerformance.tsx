@@ -82,10 +82,10 @@ export const OwnerPerformance: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-[#201A17] tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-black text-[#111111] tracking-tight">
           Desempenho & Ranking de Vendedores
         </h1>
-        <p className="text-xs text-[#746A65] mt-0.5">
+        <p className="text-xs text-[#6B6B6B] mt-0.5">
           Avaliação de volume, faturamento, giro e taxa de conversão (sell-through rate)
         </p>
       </div>
@@ -94,7 +94,7 @@ export const OwnerPerformance: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {sortedMetrics.slice(0, 3).map((item, index) => {
           const medals = ['🥇 1º Lugar', '🥈 2º Lugar', '🥉 3º Lugar'];
-          const borders = ['border-[#3B241C] shadow-md', 'border-[#EAE5E2]', 'border-[#EAE5E2]'];
+          const borders = ['border-[#141414] shadow-md', 'border-[#E7E5E2]', 'border-[#E7E5E2]'];
 
           return (
             <div
@@ -103,34 +103,34 @@ export const OwnerPerformance: React.FC = () => {
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="text-xs font-bold text-[#B7791F] uppercase tracking-wider block">
+                  <span className="text-xs font-bold text-[#A9761F] uppercase tracking-wider block">
                     {medals[index]}
                   </span>
-                  <h3 className="font-extrabold text-base text-[#201A17] mt-0.5">{item.seller.name}</h3>
+                  <h3 className="font-extrabold text-base text-[#111111] mt-0.5">{item.seller.name}</h3>
                 </div>
-                <div className="w-9 h-9 rounded-xl bg-[#F8F6F4] text-[#3B241C] flex items-center justify-center font-bold text-sm">
+                <div className="w-9 h-9 rounded-xl bg-[#F6F5F3] text-[#141414] flex items-center justify-center font-bold text-sm">
                   #{index + 1}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-2.5 rounded-xl bg-[#F8F6F4]">
-                  <span className="text-[10px] text-[#746A65] block">Faturamento:</span>
-                  <strong className="text-sm font-black text-[#201A17] tabular-nums">
+                <div className="p-2.5 rounded-xl bg-[#F6F5F3]">
+                  <span className="text-[10px] text-[#6B6B6B] block">Faturamento:</span>
+                  <strong className="text-sm font-black text-[#111111] tabular-nums">
                     {formatCurrency(item.revenue)}
                   </strong>
                 </div>
-                <div className="p-2.5 rounded-xl bg-[#F8F6F4]">
-                  <span className="text-[10px] text-[#746A65] block">Vendidos:</span>
-                  <strong className="text-sm font-bold text-[#3B241C] tabular-nums">
+                <div className="p-2.5 rounded-xl bg-[#F6F5F3]">
+                  <span className="text-[10px] text-[#6B6B6B] block">Vendidos:</span>
+                  <strong className="text-sm font-bold text-[#141414] tabular-nums">
                     {item.unitsSold} brownies
                   </strong>
                 </div>
               </div>
 
-              <div className="flex justify-between text-xs pt-1 border-t border-[#EAE5E2] font-semibold text-[#746A65]">
+              <div className="flex justify-between text-xs pt-1 border-t border-[#E7E5E2] font-semibold text-[#6B6B6B]">
                 <span>Giro (Sell-Through):</span>
-                <span className="text-[#237A4B] font-bold">{item.sellThrough}%</span>
+                <span className="text-[#1B8A4F] font-bold">{item.sellThrough}%</span>
               </div>
             </div>
           );
@@ -138,38 +138,38 @@ export const OwnerPerformance: React.FC = () => {
       </div>
 
       {/* Comparison Chart */}
-      <div className="bg-white rounded-3xl p-5 border border-[#EAE5E2] shadow-xs">
-        <h3 className="text-sm font-bold text-[#201A17] mb-1">Comparativo de Faturamento</h3>
-        <p className="text-xs text-[#746A65] mb-4">Volume monetário gerado por cada vendedor no período</p>
+      <div className="bg-white rounded-3xl p-5 border border-[#E7E5E2] shadow-xs">
+        <h3 className="text-sm font-bold text-[#111111] mb-1">Comparativo de Faturamento</h3>
+        <p className="text-xs text-[#6B6B6B] mb-4">Volume monetário gerado por cada vendedor no período</p>
         <div className="h-60 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EAE5E2" />
-              <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#746A65', fontSize: 12 }} />
-              <YAxis tickLine={false} axisLine={false} tick={{ fill: '#746A65', fontSize: 11 }} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E7E5E2" />
+              <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#6B6B6B', fontSize: 12 }} />
+              <YAxis tickLine={false} axisLine={false} tick={{ fill: '#6B6B6B', fontSize: 11 }} />
               <Tooltip
                 formatter={(v: any) => [formatCurrency(Number(v)), 'Faturamento']}
-                contentStyle={{ borderRadius: '12px', border: '1px solid #EAE5E2' }}
+                contentStyle={{ borderRadius: '12px', border: '1px solid #E7E5E2' }}
               />
-              <Bar dataKey="revenue" fill="#3B241C" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="revenue" fill="#141414" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Ranking Table */}
-      <div className="bg-white rounded-3xl border border-[#EAE5E2] shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-[#EAE5E2] flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+      <div className="bg-white rounded-3xl border border-[#E7E5E2] shadow-xs overflow-hidden">
+        <div className="p-4 border-b border-[#E7E5E2] flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div>
-            <h3 className="text-sm font-bold text-[#201A17]">Tabela Geral de Classificação</h3>
-            <p className="text-xs text-[#746A65]">Métricas consolidadas de eficiência</p>
+            <h3 className="text-sm font-bold text-[#111111]">Tabela Geral de Classificação</h3>
+            <p className="text-xs text-[#6B6B6B]">Métricas consolidadas de eficiência</p>
           </div>
           <div className="flex items-center gap-2 text-xs">
-            <span className="text-[#746A65] font-medium">Ordenar por:</span>
+            <span className="text-[#6B6B6B] font-medium">Ordenar por:</span>
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as any)}
-              className="px-3 py-1.5 bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl text-[#201A17] font-semibold"
+              className="px-3 py-1.5 bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl text-[#111111] font-semibold"
             >
               <option value="revenue">Maior Faturamento</option>
               <option value="units">Mais Unidades Vendidas</option>
@@ -183,7 +183,7 @@ export const OwnerPerformance: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-[#F8F6F4] border-b border-[#EAE5E2] text-[#746A65] uppercase text-[10px] font-bold">
+              <tr className="bg-[#F6F5F3] border-b border-[#E7E5E2] text-[#6B6B6B] uppercase text-[10px] font-bold">
                 <th className="py-3 px-4">Posição</th>
                 <th className="py-3 px-3">Vendedor</th>
                 <th className="py-3 px-3">Faturamento</th>
@@ -194,32 +194,32 @@ export const OwnerPerformance: React.FC = () => {
                 <th className="py-3 px-4 text-right">Taxa de Giro (Sell-Through)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EAE5E2]/70">
+            <tbody className="divide-y divide-[#E7E5E2]/70">
               {sortedMetrics.map((m, idx) => (
-                <tr key={m.seller.id} className="hover:bg-[#F8F6F4]">
-                  <td className="py-3 px-4 font-bold text-[#3B241C]">
+                <tr key={m.seller.id} className="hover:bg-[#F6F5F3]">
+                  <td className="py-3 px-4 font-bold text-[#141414]">
                     #{idx + 1}
                   </td>
-                  <td className="py-3 px-3 font-bold text-[#201A17]">
+                  <td className="py-3 px-3 font-bold text-[#111111]">
                     {m.seller.name}
                   </td>
-                  <td className="py-3 px-3 font-black text-[#201A17] tabular-nums">
+                  <td className="py-3 px-3 font-black text-[#111111] tabular-nums">
                     {formatCurrency(m.revenue)}
                   </td>
-                  <td className="py-3 px-3 font-bold text-[#3B241C] tabular-nums">
+                  <td className="py-3 px-3 font-bold text-[#141414] tabular-nums">
                     {m.unitsSold} brownies
                   </td>
-                  <td className="py-3 px-3 text-[#746A65] tabular-nums">
+                  <td className="py-3 px-3 text-[#6B6B6B] tabular-nums">
                     {m.salesCount} vendas
                   </td>
-                  <td className="py-3 px-3 text-[#746A65] tabular-nums">
+                  <td className="py-3 px-3 text-[#6B6B6B] tabular-nums">
                     {formatCurrency(m.averageTicket)}
                   </td>
-                  <td className="py-3 px-3 font-bold text-[#B7791F] tabular-nums">
+                  <td className="py-3 px-3 font-bold text-[#A9761F] tabular-nums">
                     {formatCurrency(m.commission)}
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-[#237A4B] tabular-nums">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-[#1B8A4F] tabular-nums">
                       {m.sellThrough}%
                     </span>
                   </td>

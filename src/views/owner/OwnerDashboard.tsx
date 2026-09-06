@@ -89,10 +89,10 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl sm:text-[28px] font-semibold text-cocoa-900 tracking-tight">
+          <h1 className="font-display text-2xl sm:text-[28px] font-semibold text-ink-900 tracking-tight">
             Visão Geral
           </h1>
-          <p className="text-xs text-cocoa-500 mt-0.5">
+          <p className="text-xs text-ink-500 mt-0.5">
             Faturamento, vendas e resultado do período selecionado
           </p>
         </div>
@@ -100,16 +100,16 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           <button
             id="btn-quick-transfer"
             onClick={() => onOpenTransfer()}
-            className="px-4 py-2 rounded-xl bg-white border border-cocoa-200 text-cocoa-900 hover:bg-cocoa-50 text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+            className="px-4 py-2 rounded-xl bg-white border border-ink-100 text-ink-900 hover:bg-ink-50 text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
           >
-            <Boxes className="w-3.5 h-3.5 text-cocoa-800" />
+            <Boxes className="w-3.5 h-3.5 text-ink-800" />
             <span>Separar para Vendedor</span>
           </button>
         </div>
       </div>
 
       {/* Hero: Faturamento + curva de evolução */}
-      <div className="brand-hero-surface rounded-[28px] p-6 sm:p-8 text-white overflow-hidden">
+      <div className="card-hero-dark rounded-[28px] p-6 sm:p-8 text-white overflow-hidden">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/60">
@@ -130,7 +130,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
             <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/60">
               Lucro bruto
             </span>
-            <div className="font-display text-2xl sm:text-3xl font-semibold text-caramel-400 tabular-nums">
+            <div className="font-display text-2xl sm:text-3xl font-semibold text-white tabular-nums">
               {formatCurrency(grossProfit)}
             </div>
           </div>
@@ -141,8 +141,8 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
             <AreaChart data={revenueTrend} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="revenueFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#dba24f" stopOpacity={0.45} />
-                  <stop offset="100%" stopColor="#dba24f" stopOpacity={0} />
+                  <stop offset="0%" stopColor="#FFFFFF" stopOpacity={0.45} />
+                  <stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis
@@ -159,7 +159,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
               <Area
                 type="monotone"
                 dataKey="revenue"
-                stroke="#dba24f"
+                stroke="#FFFFFF"
                 strokeWidth={2.5}
                 fill="url(#revenueFill)"
               />
@@ -173,11 +173,11 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Vendas por Vendedor */}
-        <div className="lg:col-span-2 bg-white rounded-3xl p-5 border border-cocoa-200 shadow-xs">
+        <div className="lg:col-span-2 bg-white rounded-3xl p-5 border border-ink-100 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-bold text-cocoa-900">Vendas por Vendedor</h3>
-              <p className="text-xs text-cocoa-500">
+              <h3 className="text-sm font-bold text-ink-900">Vendas por Vendedor</h3>
+              <p className="text-xs text-ink-500">
                 {topSeller && topSeller.revenue > 0
                   ? `${topSeller.name} lidera com ${formatCurrency(topSeller.revenue)}`
                   : 'Nenhuma venda no período'}
@@ -185,7 +185,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
             </div>
             <button
               onClick={() => onNavigateTab('sellers')}
-              className="text-xs font-bold text-cocoa-800 hover:underline flex items-center gap-1 shrink-0"
+              className="text-xs font-bold text-ink-800 hover:underline flex items-center gap-1 shrink-0"
             >
               Ver todos <ArrowUpRight className="w-3 h-3" />
             </button>
@@ -194,14 +194,14 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           <div className="h-52 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={sellerRevenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EAE5E2" />
-                <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#746A65', fontSize: 12 }} />
-                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#746A65', fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E7E5E2" />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fill: '#6B6B6B', fontSize: 12 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: '#6B6B6B', fontSize: 11 }} />
                 <Tooltip
                   formatter={(val: any) => [formatCurrency(Number(val)), 'Faturamento']}
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #EAE5E2' }}
+                  contentStyle={{ borderRadius: '12px', border: '1px solid #E7E5E2' }}
                 />
-                <Bar dataKey="revenue" fill="#3B241C" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="revenue" fill="#141414" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -209,36 +209,36 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
 
         {/* Ticket médio + lucro em destaque, sem repetir o hero */}
         <div className="space-y-4">
-          <div className="p-5 rounded-3xl bg-white border border-cocoa-200 shadow-xs">
-            <div className="flex items-center justify-between text-xs text-cocoa-500 mb-2 font-medium">
+          <div className="p-5 rounded-3xl bg-white border border-ink-100 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-ink-500 mb-2 font-medium">
               <span>Ticket Médio</span>
-              <div className="w-7 h-7 rounded-xl bg-cocoa-50 text-cocoa-800 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-xl bg-ink-50 text-ink-800 flex items-center justify-center">
                 <Wallet className="w-4 h-4" />
               </div>
             </div>
-            <div className="font-display text-2xl font-semibold text-cocoa-900 tabular-nums">
+            <div className="font-display text-2xl font-semibold text-ink-900 tabular-nums">
               {formatCurrency(averageTicket)}
             </div>
-            <p className="text-[11px] text-cocoa-500 mt-1">por venda confirmada</p>
+            <p className="text-[11px] text-ink-500 mt-1">por venda confirmada</p>
           </div>
 
-          <div className="p-5 rounded-3xl bg-white border border-cocoa-200 shadow-xs">
-            <div className="flex items-center justify-between text-xs text-cocoa-500 mb-2 font-medium">
+          <div className="p-5 rounded-3xl bg-white border border-ink-100 shadow-xs">
+            <div className="flex items-center justify-between text-xs text-ink-500 mb-2 font-medium">
               <span>Brownies Vendidos</span>
-              <div className="w-7 h-7 rounded-xl bg-cocoa-50 text-cocoa-800 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-xl bg-ink-50 text-ink-800 flex items-center justify-center">
                 <TrendingUp className="w-4 h-4" />
               </div>
             </div>
-            <div className="font-display text-2xl font-semibold text-cocoa-900 tabular-nums">
+            <div className="font-display text-2xl font-semibold text-ink-900 tabular-nums">
               {unitsSold}
             </div>
-            <p className="text-[11px] text-cocoa-500 mt-1">unidades no período</p>
+            <p className="text-[11px] text-ink-500 mt-1">unidades no período</p>
           </div>
 
           {topSeller && topSeller.revenue > 0 && (
-            <div className="p-5 rounded-3xl bg-cocoa-900 text-white">
+            <div className="p-5 rounded-3xl bg-ink-900 text-white">
               <div className="flex items-center gap-2 mb-2">
-                <Award className="w-4 h-4 text-caramel-400" />
+                <Award className="w-4 h-4 text-white" />
                 <span className="text-xs font-bold">Destaque do Período</span>
               </div>
               <div className="font-display text-lg font-semibold">{topSeller.name}</div>
@@ -249,15 +249,15 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
       </div>
 
       {/* Últimas Vendas Confirmadas */}
-      <div className="bg-white rounded-3xl p-5 border border-cocoa-200 shadow-xs">
+      <div className="bg-white rounded-3xl p-5 border border-ink-100 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-bold text-cocoa-900">Últimas Vendas Confirmadas</h3>
-            <p className="text-xs text-cocoa-500">Fluxo mais recente de recebimentos via Pix</p>
+            <h3 className="text-sm font-bold text-ink-900">Últimas Vendas Confirmadas</h3>
+            <p className="text-xs text-ink-500">Fluxo mais recente de recebimentos via Pix</p>
           </div>
           <button
             onClick={() => onNavigateTab('sales')}
-            className="text-xs font-bold text-cocoa-800 hover:underline flex items-center gap-1"
+            className="text-xs font-bold text-ink-800 hover:underline flex items-center gap-1"
           >
             Ver todas <ArrowUpRight className="w-3 h-3" />
           </button>
@@ -266,7 +266,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-cocoa-200 text-cocoa-500 uppercase text-[10px] font-bold">
+              <tr className="border-b border-ink-100 text-ink-500 uppercase text-[10px] font-bold">
                 <th className="pb-2">Vendedor</th>
                 <th className="pb-2">Qtd & Sabores</th>
                 <th className="pb-2">Total</th>
@@ -274,33 +274,33 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 <th className="pb-2 text-right">Data/Hora</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-cocoa-200/60">
+            <tbody className="divide-y divide-ink-100/60">
               {recentSales.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-xs text-cocoa-500">
+                  <td colSpan={5} className="py-8 text-center text-xs text-ink-500">
                     Nenhuma venda registrada ainda. Clique em <strong>Nova Venda</strong> para registrar pagamentos via Pix.
                   </td>
                 </tr>
               ) : (
                 recentSales.map(sale => (
-                  <tr key={sale.id} className="hover:bg-cocoa-50 transition">
-                    <td className="py-2.5 font-bold text-cocoa-900">
+                  <tr key={sale.id} className="hover:bg-ink-50 transition">
+                    <td className="py-2.5 font-bold text-ink-900">
                       {sale.seller_name}
-                      <span className="block text-[10px] text-cocoa-500 font-normal">{sale.pix_txid}</span>
+                      <span className="block text-[10px] text-ink-500 font-normal">{sale.pix_txid}</span>
                     </td>
                     <td className="py-2.5">
-                      <span className="font-semibold text-cocoa-900">{sale.total_quantity} brownies</span>
-                      <span className="block text-[11px] text-cocoa-500 truncate max-w-[160px]">
+                      <span className="font-semibold text-ink-900">{sale.total_quantity} brownies</span>
+                      <span className="block text-[11px] text-ink-500 truncate max-w-[160px]">
                         {sale.items.map(i => `${i.quantity}x ${i.flavor_name}`).join(', ')}
                       </span>
                     </td>
-                    <td className="py-2.5 font-black text-cocoa-900 tabular-nums">
+                    <td className="py-2.5 font-black text-ink-900 tabular-nums">
                       {formatCurrency(sale.total_amount)}
                     </td>
-                    <td className="py-2.5 font-bold text-[#237A4B] tabular-nums">
+                    <td className="py-2.5 font-bold text-[#1B8A4F] tabular-nums">
                       +{formatCurrency(sale.seller_commission)}
                     </td>
-                    <td className="py-2.5 text-right text-cocoa-500 text-[11px]">
+                    <td className="py-2.5 text-right text-ink-500 text-[11px]">
                       {formatDateTime(sale.created_at)}
                     </td>
                   </tr>

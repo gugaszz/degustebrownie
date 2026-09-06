@@ -51,7 +51,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentTab, onSelectTab 
   const tabs = isOwner ? ownerTabs : sellerTabs;
 
   return (
-    <nav className="bg-white border-b border-[#EAE5E2] sticky top-[61px] z-20 overflow-x-auto scrollbar-none shadow-2xs">
+    <nav className="bg-white border-b border-[#E7E5E2] sticky top-[61px] z-20 overflow-x-auto scrollbar-none shadow-2xs">
       <div className="max-w-7xl mx-auto px-4 flex gap-1 sm:gap-2">
         {tabs.map(tab => {
           const Icon = tab.icon;
@@ -64,11 +64,11 @@ export const Navigation: React.FC<NavigationProps> = ({ currentTab, onSelectTab 
               onClick={() => onSelectTab(tab.id)}
               className={`flex items-center gap-1.5 py-3 px-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
                 isActive
-                  ? 'border-[#3B241C] text-[#3B241C] bg-[#F8F6F4]/50'
-                  : 'border-transparent text-[#746A65] hover:text-[#201A17] hover:bg-[#F8F6F4]/30'
+                  ? 'border-[#141414] text-[#141414] bg-[#F6F5F3]/50'
+                  : 'border-transparent text-[#6B6B6B] hover:text-[#111111] hover:bg-[#F6F5F3]/30'
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-[#3B241C]' : 'text-[#746A65]'}`} />
+              <Icon className={`w-4 h-4 ${isActive ? 'text-[#141414]' : 'text-[#6B6B6B]'}`} />
               <span>{tab.label}</span>
             </button>
           );

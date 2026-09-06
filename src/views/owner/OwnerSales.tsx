@@ -57,10 +57,10 @@ export const OwnerSales: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#201A17] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-[#111111] tracking-tight">
             Histórico de Vendas
           </h1>
-          <p className="text-xs text-[#746A65] mt-0.5">
+          <p className="text-xs text-[#6B6B6B] mt-0.5">
             Registro detalhado de faturamento, comissões, custos e estornos
           </p>
         </div>
@@ -68,38 +68,38 @@ export const OwnerSales: React.FC = () => {
 
       {/* Summary KPI Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-4 rounded-2xl bg-white border border-[#EAE5E2] shadow-xs">
-          <span className="text-xs text-[#746A65] font-medium">Vendas no Filtro</span>
-          <div className="text-xl font-bold text-[#201A17] tabular-nums mt-0.5">
+        <div className="p-4 rounded-2xl bg-white border border-[#E7E5E2] shadow-xs">
+          <span className="text-xs text-[#6B6B6B] font-medium">Vendas no Filtro</span>
+          <div className="text-xl font-bold text-[#111111] tabular-nums mt-0.5">
             {sales.length} transações
           </div>
         </div>
-        <div className="p-4 rounded-2xl bg-white border border-[#EAE5E2] shadow-xs">
-          <span className="text-xs text-[#746A65] font-medium">Brownies Vendidos</span>
-          <div className="text-xl font-bold text-[#3B241C] tabular-nums mt-0.5">
+        <div className="p-4 rounded-2xl bg-white border border-[#E7E5E2] shadow-xs">
+          <span className="text-xs text-[#6B6B6B] font-medium">Brownies Vendidos</span>
+          <div className="text-xl font-bold text-[#141414] tabular-nums mt-0.5">
             {totalFilteredUnits} unidades
           </div>
         </div>
-        <div className="p-4 rounded-2xl bg-white border border-[#EAE5E2] shadow-xs">
-          <span className="text-xs text-[#746A65] font-medium">Total Faturado</span>
-          <div className="text-xl font-black text-[#237A4B] tabular-nums mt-0.5">
+        <div className="p-4 rounded-2xl bg-white border border-[#E7E5E2] shadow-xs">
+          <span className="text-xs text-[#6B6B6B] font-medium">Total Faturado</span>
+          <div className="text-xl font-black text-[#1B8A4F] tabular-nums mt-0.5">
             {formatCurrency(totalFilteredAmount)}
           </div>
         </div>
       </div>
 
       {/* Filter Controls */}
-      <div className="p-4 rounded-3xl bg-white border border-[#EAE5E2] shadow-xs space-y-3">
+      <div className="p-4 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Search */}
           <div className="relative">
-            <Search className="w-4 h-4 text-[#746A65] absolute left-3 top-3" />
+            <Search className="w-4 h-4 text-[#6B6B6B] absolute left-3 top-3" />
             <input
               type="text"
               placeholder="Buscar por vendedor, Pix TXID ou sabor..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full text-xs pl-9 pr-3 py-2 bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl text-[#201A17] focus:outline-none focus:border-[#3B241C]"
+              className="w-full text-xs pl-9 pr-3 py-2 bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl text-[#111111] focus:outline-none focus:border-[#141414]"
             />
           </div>
 
@@ -108,7 +108,7 @@ export const OwnerSales: React.FC = () => {
             <select
               value={selectedSeller}
               onChange={e => setSelectedSeller(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl text-[#201A17]"
+              className="w-full text-xs px-3 py-2 bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl text-[#111111]"
             >
               <option value="all">Todos os Vendedores</option>
               {state.profiles.filter(p => p.role === 'seller').map(s => (
@@ -122,7 +122,7 @@ export const OwnerSales: React.FC = () => {
             <select
               value={selectedStatus}
               onChange={e => setSelectedStatus(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl text-[#201A17]"
+              className="w-full text-xs px-3 py-2 bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl text-[#111111]"
             >
               <option value="all">Todos os Status</option>
               <option value="confirmed">Confirmadas</option>
@@ -133,11 +133,11 @@ export const OwnerSales: React.FC = () => {
       </div>
 
       {/* Sales Table */}
-      <div className="bg-white rounded-3xl border border-[#EAE5E2] shadow-xs overflow-hidden">
+      <div className="bg-white rounded-3xl border border-[#E7E5E2] shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="bg-[#F8F6F4] border-b border-[#EAE5E2] text-[#746A65] uppercase text-[10px] font-bold">
+              <tr className="bg-[#F6F5F3] border-b border-[#E7E5E2] text-[#6B6B6B] uppercase text-[10px] font-bold">
                 <th className="py-3 px-4">TXID / Data</th>
                 <th className="py-3 px-3">Vendedor</th>
                 <th className="py-3 px-3">Quantidade</th>
@@ -151,10 +151,10 @@ export const OwnerSales: React.FC = () => {
                 <th className="py-3 px-4 text-right">Ação</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#EAE5E2]/70">
+            <tbody className="divide-y divide-[#E7E5E2]/70">
               {sales.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-8 text-center text-[#746A65]">
+                  <td colSpan={11} className="py-8 text-center text-[#6B6B6B]">
                     Nenhuma venda encontrada para o período ou filtros selecionados.
                   </td>
                 </tr>
@@ -163,44 +163,44 @@ export const OwnerSales: React.FC = () => {
                   const isCancelled = sale.status === 'cancelled';
 
                   return (
-                    <tr key={sale.id} className={`hover:bg-[#F8F6F4] transition ${isCancelled ? 'opacity-50 bg-gray-50/60' : ''}`}>
-                      <td className="py-3 px-4 font-mono font-semibold text-[#201A17]">
+                    <tr key={sale.id} className={`hover:bg-[#F6F5F3] transition ${isCancelled ? 'opacity-50 bg-gray-50/60' : ''}`}>
+                      <td className="py-3 px-4 font-mono font-semibold text-[#111111]">
                         {sale.pix_txid}
-                        <span className="block text-[10px] text-[#746A65] font-sans">
+                        <span className="block text-[10px] text-[#6B6B6B] font-sans">
                           {formatDateTime(sale.created_at)}
                         </span>
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#201A17]">
+                      <td className="py-3 px-3 font-bold text-[#111111]">
                         {sale.seller_name}
                       </td>
-                      <td className="py-3 px-3 font-semibold text-[#3B241C] tabular-nums">
+                      <td className="py-3 px-3 font-semibold text-[#141414] tabular-nums">
                         {sale.total_quantity} un.
                       </td>
-                      <td className="py-3 px-3 text-[#746A65] max-w-[180px] truncate" title={sale.items.map(i => `${i.quantity}x ${i.flavor_name}`).join(', ')}>
+                      <td className="py-3 px-3 text-[#6B6B6B] max-w-[180px] truncate" title={sale.items.map(i => `${i.quantity}x ${i.flavor_name}`).join(', ')}>
                         {sale.items.map(i => `${i.quantity}x ${i.flavor_name}`).join(', ')}
                       </td>
-                      <td className="py-3 px-3 font-black text-[#201A17] tabular-nums">
+                      <td className="py-3 px-3 font-black text-[#111111] tabular-nums">
                         {formatCurrency(sale.total_amount)}
                       </td>
-                      <td className="py-3 px-3 text-[#746A65] tabular-nums">
+                      <td className="py-3 px-3 text-[#6B6B6B] tabular-nums">
                         {formatCurrency(sale.total_cost)}
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#237A4B] tabular-nums">
+                      <td className="py-3 px-3 font-bold text-[#1B8A4F] tabular-nums">
                         {formatCurrency(sale.gross_profit)}
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#B7791F] tabular-nums">
+                      <td className="py-3 px-3 font-bold text-[#A9761F] tabular-nums">
                         {formatCurrency(sale.seller_commission)}
                       </td>
-                      <td className="py-3 px-3 font-bold text-[#3B241C] tabular-nums">
+                      <td className="py-3 px-3 font-bold text-[#141414] tabular-nums">
                         {formatCurrency(sale.owner_gross_result)}
                       </td>
                       <td className="py-3 px-3">
                         {isCancelled ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-[#B33A3A]">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-[#B3403D]">
                             Cancelada
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-[#237A4B] flex items-center gap-1 w-fit">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-[#1B8A4F] flex items-center gap-1 w-fit">
                             <CheckCircle2 className="w-3 h-3" /> Pix Confirmado
                           </span>
                         )}
@@ -209,7 +209,7 @@ export const OwnerSales: React.FC = () => {
                         {!isCancelled && (
                           <button
                             onClick={() => setSaleToCancel(sale)}
-                            className="text-[11px] font-semibold text-[#746A65] hover:text-[#B33A3A] transition"
+                            className="text-[11px] font-semibold text-[#6B6B6B] hover:text-[#B3403D] transition"
                             title="Estornar venda e repor estoque"
                           >
                             Estornar
@@ -228,37 +228,37 @@ export const OwnerSales: React.FC = () => {
       {/* Sale Cancellation Dialog */}
       {saleToCancel && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-[#EAE5E2] space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-red-100 text-[#B33A3A] flex items-center justify-center mx-auto">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-[#E7E5E2] space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 text-[#B3403D] flex items-center justify-center mx-auto">
               <RotateCcw className="w-6 h-6" />
             </div>
             <div className="text-center">
-              <h4 className="text-base font-bold text-[#201A17]">Estornar esta venda?</h4>
-              <p className="text-xs text-[#746A65] mt-1 leading-relaxed">
+              <h4 className="text-base font-bold text-[#111111]">Estornar esta venda?</h4>
+              <p className="text-xs text-[#6B6B6B] mt-1 leading-relaxed">
                 A venda <strong>{saleToCancel.pix_txid}</strong> ({formatCurrency(saleToCancel.total_amount)}) será cancelada. O estoque de <strong>{saleToCancel.total_quantity} brownies</strong> será devolvido automaticamente ao vendedor <strong>{saleToCancel.seller_name}</strong> e a comissão será revertida.
               </p>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-[#201A17] mb-1">Motivo do Estorno:</label>
+              <label className="block text-[11px] font-bold text-[#111111] mb-1">Motivo do Estorno:</label>
               <input
                 type="text"
                 value={cancelReason}
                 onChange={e => setCancelReason(e.target.value)}
-                className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
               />
             </div>
 
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setSaleToCancel(null)}
-                className="flex-1 py-2.5 rounded-xl border border-[#EAE5E2] text-xs font-semibold text-[#746A65]"
+                className="flex-1 py-2.5 rounded-xl border border-[#E7E5E2] text-xs font-semibold text-[#6B6B6B]"
               >
                 Voltar
               </button>
               <button
                 onClick={handleConfirmCancel}
-                className="flex-1 py-2.5 rounded-xl bg-[#B33A3A] text-white text-xs font-bold hover:bg-[#962e2e]"
+                className="flex-1 py-2.5 rounded-xl bg-[#B3403D] text-white text-xs font-bold hover:bg-[#8A2E2E]"
               >
                 Confirmar Estorno
               </button>

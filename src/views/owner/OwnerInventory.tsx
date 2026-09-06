@@ -90,31 +90,31 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
       {/* Top Header & Fast Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#201A17] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-[#111111] tracking-tight">
             Controle de Estoque
           </h1>
-          <p className="text-xs text-[#746A65] mt-0.5">
+          <p className="text-xs text-[#6B6B6B] mt-0.5">
             Rastreabilidade completa de brownies entre o estoque central e vendedores
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => onOpenTransfer()}
-            className="px-3.5 py-2 rounded-xl bg-[#3B241C] text-white hover:bg-[#2E1A14] text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+            className="px-3.5 py-2 rounded-xl bg-[#141414] text-white hover:bg-[#0A0A0A] text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
           >
             <ArrowRightLeft className="w-3.5 h-3.5" />
             <span>Separar para Vendedor</span>
           </button>
           <button
             onClick={onOpenReturn}
-            className="px-3.5 py-2 rounded-xl bg-white border border-[#EAE5E2] text-[#201A17] hover:bg-[#F8F6F4] text-xs font-bold transition flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl bg-white border border-[#E7E5E2] text-[#111111] hover:bg-[#F6F5F3] text-xs font-bold transition flex items-center gap-1.5"
           >
             <ArrowDownLeft className="w-3.5 h-3.5" />
             <span>Devolver ao Central</span>
           </button>
           <button
             onClick={onOpenLoss}
-            className="px-3.5 py-2 rounded-xl bg-white border border-[#EAE5E2] text-[#B33A3A] hover:bg-red-50 text-xs font-bold transition flex items-center gap-1.5"
+            className="px-3.5 py-2 rounded-xl bg-white border border-[#E7E5E2] text-[#B3403D] hover:bg-red-50 text-xs font-bold transition flex items-center gap-1.5"
           >
             <AlertTriangle className="w-3.5 h-3.5" />
             <span>Registrar Perda</span>
@@ -124,44 +124,44 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
 
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="p-4 rounded-3xl bg-white border border-[#EAE5E2] shadow-xs">
-          <span className="text-xs text-[#746A65] font-medium block">Total Geral no Negócio</span>
-          <div className="text-2xl font-black text-[#3B241C] tabular-nums mt-1">
+        <div className="p-4 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs">
+          <span className="text-xs text-[#6B6B6B] font-medium block">Total Geral no Negócio</span>
+          <div className="text-2xl font-black text-[#141414] tabular-nums mt-1">
             {grandTotal} brownies
           </div>
-          <span className="text-[11px] text-[#746A65] mt-0.5 block">Central + Vendedores</span>
+          <span className="text-[11px] text-[#6B6B6B] mt-0.5 block">Central + Vendedores</span>
         </div>
-        <div className="p-4 rounded-3xl bg-white border border-[#EAE5E2] shadow-xs">
-          <span className="text-xs text-[#746A65] font-medium block">Estoque Central (Proprietário)</span>
-          <div className="text-2xl font-black text-[#201A17] tabular-nums mt-1">
+        <div className="p-4 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs">
+          <span className="text-xs text-[#6B6B6B] font-medium block">Estoque Central (Proprietário)</span>
+          <div className="text-2xl font-black text-[#111111] tabular-nums mt-1">
             {centralStockTotal} brownies
           </div>
-          <span className="text-[11px] text-[#746A65] mt-0.5 block">Disponíveis para envio</span>
+          <span className="text-[11px] text-[#6B6B6B] mt-0.5 block">Disponíveis para envio</span>
         </div>
-        <div className="p-4 rounded-3xl bg-white border border-[#EAE5E2] shadow-xs">
-          <span className="text-xs text-[#746A65] font-medium block">Com os Vendedores</span>
-          <div className="text-2xl font-black text-[#746A65] tabular-nums mt-1">
+        <div className="p-4 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs">
+          <span className="text-xs text-[#6B6B6B] font-medium block">Com os Vendedores</span>
+          <div className="text-2xl font-black text-[#6B6B6B] tabular-nums mt-1">
             {sellersStockTotal} brownies
           </div>
-          <span className="text-[11px] text-[#746A65] mt-0.5 block">Em circulação para venda</span>
+          <span className="text-[11px] text-[#6B6B6B] mt-0.5 block">Em circulação para venda</span>
         </div>
-        <div className="p-4 rounded-3xl bg-white border border-[#EAE5E2] shadow-xs">
-          <span className="text-xs text-[#746A65] font-medium block">Valor de Custo do Estoque</span>
-          <div className="text-2xl font-black text-[#237A4B] tabular-nums mt-1">
+        <div className="p-4 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs">
+          <span className="text-xs text-[#6B6B6B] font-medium block">Valor de Custo do Estoque</span>
+          <div className="text-2xl font-black text-[#1B8A4F] tabular-nums mt-1">
             {formatCurrency(inventoryCostValue)}
           </div>
-          <span className="text-[11px] text-[#746A65] mt-0.5 block">Custo R$ 4,00 / unidade</span>
+          <span className="text-[11px] text-[#6B6B6B] mt-0.5 block">Custo R$ 4,00 / unidade</span>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex border-b border-[#EAE5E2] gap-2 overflow-x-auto">
+      <div className="flex border-b border-[#E7E5E2] gap-2 overflow-x-auto">
         <button
           onClick={() => setActiveTab('overview')}
           className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
             activeTab === 'overview'
-              ? 'border-[#3B241C] text-[#3B241C]'
-              : 'border-transparent text-[#746A65] hover:text-[#201A17]'
+              ? 'border-[#141414] text-[#141414]'
+              : 'border-transparent text-[#6B6B6B] hover:text-[#111111]'
           }`}
         >
           Visão Geral por Sabor
@@ -170,8 +170,8 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
           onClick={() => setActiveTab('central')}
           className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
             activeTab === 'central'
-              ? 'border-[#3B241C] text-[#3B241C]'
-              : 'border-transparent text-[#746A65] hover:text-[#201A17]'
+              ? 'border-[#141414] text-[#141414]'
+              : 'border-transparent text-[#6B6B6B] hover:text-[#111111]'
           }`}
         >
           Estoque Central & Lotes (FEFO)
@@ -180,8 +180,8 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
           onClick={() => setActiveTab('sellers')}
           className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
             activeTab === 'sellers'
-              ? 'border-[#3B241C] text-[#3B241C]'
-              : 'border-transparent text-[#746A65] hover:text-[#201A17]'
+              ? 'border-[#141414] text-[#141414]'
+              : 'border-transparent text-[#6B6B6B] hover:text-[#111111]'
           }`}
         >
           Estoque por Vendedor
@@ -190,8 +190,8 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
           onClick={() => setActiveTab('movements')}
           className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
             activeTab === 'movements'
-              ? 'border-[#3B241C] text-[#3B241C]'
-              : 'border-transparent text-[#746A65] hover:text-[#201A17]'
+              ? 'border-[#141414] text-[#141414]'
+              : 'border-transparent text-[#6B6B6B] hover:text-[#111111]'
           }`}
         >
           Livro Razão de Movimentações
@@ -200,8 +200,8 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
           onClick={() => setActiveTab('losses')}
           className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition whitespace-nowrap ${
             activeTab === 'losses'
-              ? 'border-[#3B241C] text-[#3B241C]'
-              : 'border-transparent text-[#746A65] hover:text-[#201A17]'
+              ? 'border-[#141414] text-[#141414]'
+              : 'border-transparent text-[#6B6B6B] hover:text-[#111111]'
           }`}
         >
           Perdas e Avarias
@@ -222,29 +222,29 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
             const flavorTotal = centralQty + sellersQty;
 
             return (
-              <div key={flavor.id} className="p-5 rounded-3xl bg-white border border-[#EAE5E2] shadow-xs space-y-4">
+              <div key={flavor.id} className="p-5 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-sm text-[#201A17]">Brownie de {flavor.name}</h3>
-                    <span className="text-xs text-[#746A65]">Gourmet Recheado</span>
+                    <h3 className="font-bold text-sm text-[#111111]">Brownie de {flavor.name}</h3>
+                    <span className="text-xs text-[#6B6B6B]">Gourmet Recheado</span>
                   </div>
-                  <span className="text-lg font-black text-[#3B241C] tabular-nums">
+                  <span className="text-lg font-black text-[#141414] tabular-nums">
                     {flavorTotal} un.
                   </span>
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1.5 border-b border-[#EAE5E2]">
-                    <span className="text-[#746A65]">No Estoque Central:</span>
-                    <strong className="text-[#3B241C]">{centralQty} unidades</strong>
+                  <div className="flex justify-between py-1.5 border-b border-[#E7E5E2]">
+                    <span className="text-[#6B6B6B]">No Estoque Central:</span>
+                    <strong className="text-[#141414]">{centralQty} unidades</strong>
                   </div>
-                  <div className="flex justify-between py-1.5 border-b border-[#EAE5E2]">
-                    <span className="text-[#746A65]">Com Vendedores:</span>
-                    <strong className="text-[#201A17]">{sellersQty} unidades</strong>
+                  <div className="flex justify-between py-1.5 border-b border-[#E7E5E2]">
+                    <span className="text-[#6B6B6B]">Com Vendedores:</span>
+                    <strong className="text-[#111111]">{sellersQty} unidades</strong>
                   </div>
                   <div className="flex justify-between pt-1 font-semibold">
-                    <span className="text-[#746A65]">Valor em Custo:</span>
-                    <span className="text-[#237A4B]">{formatCurrency(flavorTotal * 4.0)}</span>
+                    <span className="text-[#6B6B6B]">Valor em Custo:</span>
+                    <span className="text-[#1B8A4F]">{formatCurrency(flavorTotal * 4.0)}</span>
                   </div>
                 </div>
               </div>
@@ -256,19 +256,19 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
       {/* 2. Central Inventory & FEFO Batches */}
       {activeTab === 'central' && (
         <div className="space-y-4">
-          <div className="bg-white rounded-3xl border border-[#EAE5E2] shadow-xs p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#EAE5E2] gap-3 mb-4">
+          <div className="bg-white rounded-3xl border border-[#E7E5E2] shadow-xs p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E7E5E2] gap-3 mb-4">
               <div>
-                <h3 className="text-sm font-bold text-[#201A17]">
+                <h3 className="text-sm font-bold text-[#111111]">
                   Lotes Ativos no Estoque Central (FEFO: Primeiro que Vence, Primeiro que Sai)
                 </h3>
-                <p className="text-xs text-[#746A65] mt-0.5">
+                <p className="text-xs text-[#6B6B6B] mt-0.5">
                   Controle rigoroso de validade para garantir o frescor e gerenciar perdas
                 </p>
               </div>
               <button
                 onClick={() => setIsAddingBatch(true)}
-                className="px-3.5 py-2 rounded-xl bg-[#3B241C] text-white text-xs font-bold hover:bg-[#2E1A14] transition flex items-center gap-1.5 self-start sm:self-auto shadow-xs"
+                className="px-3.5 py-2 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A] transition flex items-center gap-1.5 self-start sm:self-auto shadow-xs"
               >
                 <PackagePlus className="w-3.5 h-3.5" />
                 <span>Entrada de Lote Avulso</span>
@@ -278,7 +278,7 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-[#F8F6F4] border-b border-[#EAE5E2] text-[#746A65] uppercase text-[10px] font-bold">
+                  <tr className="bg-[#F6F5F3] border-b border-[#E7E5E2] text-[#6B6B6B] uppercase text-[10px] font-bold">
                     <th className="py-2.5 px-3">Lote / Referência</th>
                     <th className="py-2.5 px-3">Sabor</th>
                     <th className="py-2.5 px-3">Recebido em</th>
@@ -289,10 +289,10 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                     <th className="py-2.5 px-3 text-right">Ação</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EAE5E2]/70">
+                <tbody className="divide-y divide-[#E7E5E2]/70">
                   {state.batches.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-8 text-center text-xs text-[#746A65]">
+                      <td colSpan={8} className="py-8 text-center text-xs text-[#6B6B6B]">
                         Nenhum lote ativo no estoque central. Clique em "Entrada de Lote Avulso" ou dê entrada em um pedido de compra para alimentar o estoque central.
                       </td>
                     </tr>
@@ -304,30 +304,30 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                     const isExpiringSoon = diffDays <= 5;
 
                     return (
-                      <tr key={batch.id} className="hover:bg-[#F8F6F4]">
-                        <td className="py-2.5 px-3 font-mono font-bold text-[#201A17]">
+                      <tr key={batch.id} className="hover:bg-[#F6F5F3]">
+                        <td className="py-2.5 px-3 font-mono font-bold text-[#111111]">
                           {batch.batch_reference}
                         </td>
-                        <td className="py-2.5 px-3 font-semibold text-[#201A17]">
+                        <td className="py-2.5 px-3 font-semibold text-[#111111]">
                           {batch.flavor_name}
                         </td>
-                        <td className="py-2.5 px-3 text-[#746A65]">
+                        <td className="py-2.5 px-3 text-[#6B6B6B]">
                           {formatDate(batch.received_at)}
                         </td>
                         <td className="py-2.5 px-3">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            isExpiringSoon ? 'bg-red-100 text-[#B33A3A]' : 'bg-green-100 text-[#237A4B]'
+                            isExpiringSoon ? 'bg-red-100 text-[#B3403D]' : 'bg-green-100 text-[#1B8A4F]'
                           }`}>
                             {formatDate(batch.expiration_date)} ({diffDays}d)
                           </span>
                         </td>
-                        <td className="py-2.5 px-3 text-[#746A65] tabular-nums">
+                        <td className="py-2.5 px-3 text-[#6B6B6B] tabular-nums">
                           {batch.quantity_received} un.
                         </td>
-                        <td className="py-2.5 px-3 font-bold text-[#3B241C] tabular-nums">
+                        <td className="py-2.5 px-3 font-bold text-[#141414] tabular-nums">
                           {batch.quantity_remaining} un.
                         </td>
-                        <td className="py-2.5 px-3 text-[#746A65] tabular-nums">
+                        <td className="py-2.5 px-3 text-[#6B6B6B] tabular-nums">
                           {formatCurrency(batch.unit_cost)}
                         </td>
                         <td className="py-2.5 px-3 text-right">
@@ -360,13 +360,13 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
               : 0;
 
             return (
-              <div key={seller.id} className="bg-white rounded-3xl p-5 border border-[#EAE5E2] shadow-xs space-y-4">
+              <div key={seller.id} className="bg-white rounded-3xl p-5 border border-[#E7E5E2] shadow-xs space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-sm text-[#201A17]">{seller.name}</h3>
-                    <span className="text-xs text-[#746A65]">{seller.phone || seller.email}</span>
+                    <h3 className="font-bold text-sm text-[#111111]">{seller.name}</h3>
+                    <span className="text-xs text-[#6B6B6B]">{seller.phone || seller.email}</span>
                   </div>
-                  <span className="text-xl font-black text-[#3B241C] tabular-nums">
+                  <span className="text-xl font-black text-[#141414] tabular-nums">
                     {totalSellerUnits} un.
                   </span>
                 </div>
@@ -375,9 +375,9 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                   {activeFlavors.map(f => {
                     const q = loc ? getFlavorStock(loc.id, f.id) : 0;
                     return (
-                      <div key={f.id} className="flex justify-between py-1 border-b border-[#EAE5E2]/70">
-                        <span className="text-[#746A65]">{f.name}:</span>
-                        <strong className="text-[#201A17] tabular-nums">{q} brownies</strong>
+                      <div key={f.id} className="flex justify-between py-1 border-b border-[#E7E5E2]/70">
+                        <span className="text-[#6B6B6B]">{f.name}:</span>
+                        <strong className="text-[#111111] tabular-nums">{q} brownies</strong>
                       </div>
                     );
                   })}
@@ -386,7 +386,7 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                 <div className="pt-2 flex gap-2">
                   <button
                     onClick={() => onOpenTransfer(seller.id)}
-                    className="flex-1 py-2 rounded-xl bg-[#3B241C] text-white text-xs font-bold hover:bg-[#2E1A14] transition"
+                    className="flex-1 py-2 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A] transition"
                   >
                     Separar Estoque
                   </button>
@@ -399,17 +399,17 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
 
       {/* 4. Immutable Movements Ledger */}
       {activeTab === 'movements' && (
-        <div className="bg-white rounded-3xl border border-[#EAE5E2] shadow-xs overflow-hidden">
-          <div className="p-4 border-b border-[#EAE5E2] flex items-center justify-between">
+        <div className="bg-white rounded-3xl border border-[#E7E5E2] shadow-xs overflow-hidden">
+          <div className="p-4 border-b border-[#E7E5E2] flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-[#201A17]">Livro Razão Imutável de Estoque</h3>
-              <p className="text-xs text-[#746A65]">Histórico auditável de todas as entradas, saídas e estornos</p>
+              <h3 className="text-sm font-bold text-[#111111]">Livro Razão Imutável de Estoque</h3>
+              <p className="text-xs text-[#6B6B6B]">Histórico auditável de todas as entradas, saídas e estornos</p>
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
-                <tr className="bg-[#F8F6F4] border-b border-[#EAE5E2] text-[#746A65] uppercase text-[10px] font-bold">
+                <tr className="bg-[#F6F5F3] border-b border-[#E7E5E2] text-[#6B6B6B] uppercase text-[10px] font-bold">
                   <th className="py-2.5 px-4">Data/Hora</th>
                   <th className="py-2.5 px-3">Local</th>
                   <th className="py-2.5 px-3">Tipo</th>
@@ -419,10 +419,10 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                   <th className="py-2.5 px-4">Detalhes</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#EAE5E2]/70">
+              <tbody className="divide-y divide-[#E7E5E2]/70">
                 {state.movements.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-xs text-[#746A65]">
+                    <td colSpan={7} className="py-8 text-center text-xs text-[#6B6B6B]">
                       Nenhuma movimentação de estoque registrada até o momento.
                     </td>
                   </tr>
@@ -430,28 +430,28 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                   state.movements.map(mov => {
                   const isPositive = mov.quantity_delta > 0;
                   return (
-                    <tr key={mov.id} className="hover:bg-[#F8F6F4]">
-                      <td className="py-2.5 px-4 text-[#746A65]">
+                    <tr key={mov.id} className="hover:bg-[#F6F5F3]">
+                      <td className="py-2.5 px-4 text-[#6B6B6B]">
                         {formatDateTime(mov.created_at)}
                       </td>
-                      <td className="py-2.5 px-3 font-semibold text-[#201A17]">
+                      <td className="py-2.5 px-3 font-semibold text-[#111111]">
                         {mov.location_name}
                       </td>
                       <td className="py-2.5 px-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EEE7E3] text-[#3B241C]">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EDEBE8] text-[#141414]">
                           {mov.movement_type}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3 font-bold text-[#201A17]">
+                      <td className="py-2.5 px-3 font-bold text-[#111111]">
                         {mov.flavor_name}
                       </td>
-                      <td className={`py-2.5 px-3 font-black tabular-nums ${isPositive ? 'text-[#237A4B]' : 'text-[#B33A3A]'}`}>
+                      <td className={`py-2.5 px-3 font-black tabular-nums ${isPositive ? 'text-[#1B8A4F]' : 'text-[#B3403D]'}`}>
                         {isPositive ? `+${mov.quantity_delta}` : mov.quantity_delta} un.
                       </td>
-                      <td className="py-2.5 px-3 text-[#746A65]">
+                      <td className="py-2.5 px-3 text-[#6B6B6B]">
                         {mov.created_by}
                       </td>
-                      <td className="py-2.5 px-4 text-[#746A65] text-[11px] truncate max-w-xs">
+                      <td className="py-2.5 px-4 text-[#6B6B6B] text-[11px] truncate max-w-xs">
                         {mov.notes || '-'}
                       </td>
                     </tr>
@@ -466,29 +466,29 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
 
       {/* 5. Losses */}
       {activeTab === 'losses' && (
-        <div className="bg-white rounded-3xl border border-[#EAE5E2] shadow-xs p-5">
+        <div className="bg-white rounded-3xl border border-[#E7E5E2] shadow-xs p-5">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h3 className="text-sm font-bold text-[#201A17]">Histórico de Perdas e Avarias</h3>
-              <p className="text-xs text-[#746A65]">Registro formal com motivo obrigatório</p>
+              <h3 className="text-sm font-bold text-[#111111]">Histórico de Perdas e Avarias</h3>
+              <p className="text-xs text-[#6B6B6B]">Registro formal com motivo obrigatório</p>
             </div>
             <button
               onClick={onOpenLoss}
-              className="px-3.5 py-1.5 rounded-xl bg-[#B33A3A] text-white text-xs font-bold hover:bg-[#962e2e]"
+              className="px-3.5 py-1.5 rounded-xl bg-[#B3403D] text-white text-xs font-bold hover:bg-[#8A2E2E]"
             >
               Nova Baixa
             </button>
           </div>
 
           {lossesMovements.length === 0 ? (
-            <div className="text-center py-8 text-xs text-[#746A65]">
+            <div className="text-center py-8 text-xs text-[#6B6B6B]">
               Nenhuma perda registrada até o momento. Excelente controle operacional!
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="bg-[#F8F6F4] border-b border-[#EAE5E2] text-[#746A65] uppercase text-[10px] font-bold">
+                  <tr className="bg-[#F6F5F3] border-b border-[#E7E5E2] text-[#6B6B6B] uppercase text-[10px] font-bold">
                     <th className="py-2 px-3">Data</th>
                     <th className="py-2 px-3">Local</th>
                     <th className="py-2 px-3">Sabor</th>
@@ -497,15 +497,15 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                     <th className="py-2 px-3">Motivo / Notas</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EAE5E2]/70">
+                <tbody className="divide-y divide-[#E7E5E2]/70">
                   {lossesMovements.map(l => (
                     <tr key={l.id} className="hover:bg-red-50/40">
-                      <td className="py-2.5 px-3 text-[#746A65]">{formatDateTime(l.created_at)}</td>
-                      <td className="py-2.5 px-3 font-semibold text-[#201A17]">{l.location_name}</td>
-                      <td className="py-2.5 px-3 font-bold text-[#201A17]">{l.flavor_name}</td>
-                      <td className="py-2.5 px-3 font-bold text-[#B33A3A]">{Math.abs(l.quantity_delta)} brownies</td>
-                      <td className="py-2.5 px-3 font-semibold text-[#B33A3A]">{formatCurrency(Math.abs(l.quantity_delta) * 4.0)}</td>
-                      <td className="py-2.5 px-3 text-[#746A65]">{l.notes}</td>
+                      <td className="py-2.5 px-3 text-[#6B6B6B]">{formatDateTime(l.created_at)}</td>
+                      <td className="py-2.5 px-3 font-semibold text-[#111111]">{l.location_name}</td>
+                      <td className="py-2.5 px-3 font-bold text-[#111111]">{l.flavor_name}</td>
+                      <td className="py-2.5 px-3 font-bold text-[#B3403D]">{Math.abs(l.quantity_delta)} brownies</td>
+                      <td className="py-2.5 px-3 font-semibold text-[#B3403D]">{formatCurrency(Math.abs(l.quantity_delta) * 4.0)}</td>
+                      <td className="py-2.5 px-3 text-[#6B6B6B]">{l.notes}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -518,15 +518,15 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
       {/* Manual Batch Entry Modal */}
       {isAddingBatch && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl border border-[#EAE5E2] space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-[#EAE5E2]">
-              <h3 className="font-bold text-sm text-[#201A17] flex items-center gap-1.5">
-                <PackagePlus className="w-4 h-4 text-[#3B241C]" />
+          <div className="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl border border-[#E7E5E2] space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E7E5E2]">
+              <h3 className="font-bold text-sm text-[#111111] flex items-center gap-1.5">
+                <PackagePlus className="w-4 h-4 text-[#141414]" />
                 <span>Entrada de Lote Avulso no Estoque Central</span>
               </h3>
               <button
                 onClick={() => setIsAddingBatch(false)}
-                className="text-xs text-[#746A65] hover:text-[#201A17]"
+                className="text-xs text-[#6B6B6B] hover:text-[#111111]"
               >
                 ✕
               </button>
@@ -534,12 +534,12 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
 
             <form onSubmit={handleCreateBatch} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-[#201A17] mb-1">Sabor:</label>
+                <label className="block text-xs font-bold text-[#111111] mb-1">Sabor:</label>
                 <select
                   required
                   value={newBatchFlavorId}
                   onChange={e => setNewBatchFlavorId(e.target.value)}
-                  className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                  className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                 >
                   {state.flavors.map(f => (
                     <option key={f.id} value={f.id}>{f.name}</option>
@@ -549,19 +549,19 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-bold text-[#201A17] mb-1">Quantidade:</label>
+                  <label className="block text-xs font-bold text-[#111111] mb-1">Quantidade:</label>
                   <input
                     type="number"
                     min="1"
                     required
                     value={newBatchQuantity}
                     onChange={e => setNewBatchQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                    className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#201A17] mb-1">Custo Unitário (R$):</label>
+                  <label className="block text-xs font-bold text-[#111111] mb-1">Custo Unitário (R$):</label>
                   <input
                     type="number"
                     step="0.01"
@@ -569,43 +569,43 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                     required
                     value={newBatchCost}
                     onChange={e => setNewBatchCost(parseFloat(e.target.value) || 0)}
-                    className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                    className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-bold text-[#201A17] mb-1">Validade (FEFO):</label>
+                  <label className="block text-xs font-bold text-[#111111] mb-1">Validade (FEFO):</label>
                   <input
                     type="date"
                     required
                     value={newBatchExpiration}
                     onChange={e => setNewBatchExpiration(e.target.value)}
-                    className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                    className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#201A17] mb-1">Código/Ref Lote:</label>
+                  <label className="block text-xs font-bold text-[#111111] mb-1">Código/Ref Lote:</label>
                   <input
                     type="text"
                     placeholder="Auto se vazio"
                     value={newBatchRef}
                     onChange={e => setNewBatchRef(e.target.value)}
-                    className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                    className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#201A17] mb-1">Observações:</label>
+                <label className="block text-xs font-bold text-[#111111] mb-1">Observações:</label>
                 <input
                   type="text"
                   placeholder="Ex: Produção interna ou reposição manual"
                   value={newBatchNotes}
                   onChange={e => setNewBatchNotes(e.target.value)}
-                  className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                  className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                 />
               </div>
 
@@ -613,13 +613,13 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsAddingBatch(false)}
-                  className="px-3 py-2 text-xs font-semibold text-[#746A65]"
+                  className="px-3 py-2 text-xs font-semibold text-[#6B6B6B]"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#3B241C] text-white text-xs font-bold rounded-xl hover:bg-[#2E1A14]"
+                  className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A]"
                 >
                   Confirmar Entrada
                 </button>
@@ -632,20 +632,20 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
       {/* Delete / Discard Batch Confirmation Modal */}
       {batchToDelete && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-[#EAE5E2] space-y-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-[#E7E5E2] space-y-4">
             <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto">
               <Trash2 className="w-5 h-5" />
             </div>
             <div className="text-center">
-              <h3 className="font-bold text-sm text-[#201A17]">Descartar / Excluir Lote?</h3>
-              <p className="text-xs text-[#746A65] mt-1">
+              <h3 className="font-bold text-sm text-[#111111]">Descartar / Excluir Lote?</h3>
+              <p className="text-xs text-[#6B6B6B] mt-1">
                 As unidades restantes deste lote serão removidas do estoque central com registro no livro razão de movimentações.
               </p>
             </div>
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setBatchToDelete(null)}
-                className="flex-1 py-2 rounded-xl border border-[#EAE5E2] text-xs font-semibold text-[#746A65] hover:bg-[#F8F6F4]"
+                className="flex-1 py-2 rounded-xl border border-[#E7E5E2] text-xs font-semibold text-[#6B6B6B] hover:bg-[#F6F5F3]"
               >
                 Cancelar
               </button>

@@ -52,18 +52,18 @@ export const LossModal: React.FC<LossModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#EAE5E2] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#EAE5E2] flex items-center justify-between bg-[#F8F6F4]">
+      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#E7E5E2] overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#E7E5E2] flex items-center justify-between bg-[#F6F5F3]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#B33A3A] text-white flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#B3403D] text-white flex items-center justify-center">
               <AlertTriangle className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#201A17]">Registrar Perda de Estoque</h3>
-              <p className="text-[11px] text-[#746A65]">Avarias, vencimento ou perdas físicas</p>
+              <h3 className="text-sm font-bold text-[#111111]">Registrar Perda de Estoque</h3>
+              <p className="text-[11px] text-[#6B6B6B]">Avarias, vencimento ou perdas físicas</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#746A65] hover:bg-[#EEE7E3]">
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6B6B] hover:bg-[#EDEBE8]">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -77,18 +77,18 @@ export const LossModal: React.FC<LossModalProps> = ({ isOpen, onClose }) => {
           )}
 
           {successMsg && (
-            <div className="p-3 rounded-xl bg-green-50 text-[#237A4B] text-xs flex items-start gap-2 font-semibold">
+            <div className="p-3 rounded-xl bg-green-50 text-[#1B8A4F] text-xs flex items-start gap-2 font-semibold">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-[#201A17] mb-1">Local do Estoque:</label>
+            <label className="block text-xs font-bold text-[#111111] mb-1">Local do Estoque:</label>
             <select
               value={locationId}
               onChange={e => setLocationId(e.target.value)}
-              className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+              className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
             >
               {activeLocations.map(l => (
                 <option key={l.id} value={l.id}>{l.name}</option>
@@ -98,11 +98,11 @@ export const LossModal: React.FC<LossModalProps> = ({ isOpen, onClose }) => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#201A17] mb-1">Sabor:</label>
+              <label className="block text-xs font-bold text-[#111111] mb-1">Sabor:</label>
               <select
                 value={flavorId}
                 onChange={e => setFlavorId(e.target.value)}
-                className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
               >
                 {activeFlavors.map(f => (
                   <option key={f.id} value={f.id}>{f.name}</option>
@@ -110,28 +110,28 @@ export const LossModal: React.FC<LossModalProps> = ({ isOpen, onClose }) => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#201A17] mb-1">Quantidade:</label>
+              <label className="block text-xs font-bold text-[#111111] mb-1">Quantidade:</label>
               <input
                 type="number"
                 min={1}
                 max={currentStock}
                 value={quantity}
                 onChange={e => setQuantity(parseInt(e.target.value) || 1)}
-                className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
               />
             </div>
           </div>
 
-          <div className="text-xs text-[#746A65] bg-[#F8F6F4] p-2.5 rounded-xl">
-            Estoque atual neste local: <strong className="text-[#3B241C]">{currentStock} un.</strong>
+          <div className="text-xs text-[#6B6B6B] bg-[#F6F5F3] p-2.5 rounded-xl">
+            Estoque atual neste local: <strong className="text-[#141414]">{currentStock} un.</strong>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#201A17] mb-1">Motivo Obrigatório:</label>
+            <label className="block text-xs font-bold text-[#111111] mb-1">Motivo Obrigatório:</label>
             <select
               value={reason}
               onChange={e => setReason(e.target.value as any)}
-              className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+              className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
             >
               <option value="Produto danificado">Produto danificado</option>
               <option value="Produto vencido">Produto vencido</option>
@@ -141,21 +141,21 @@ export const LossModal: React.FC<LossModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-[#746A65] mb-1">Detalhes adicionais:</label>
+            <label className="block text-[11px] font-semibold text-[#6B6B6B] mb-1">Detalhes adicionais:</label>
             <input
               type="text"
               placeholder="Ex: Embalagem violada no transporte"
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+              className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
             />
           </div>
 
-          <div className="pt-2 border-t border-[#EAE5E2] flex justify-end gap-2">
-            <button onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#746A65]">Cancelar</button>
+          <div className="pt-2 border-t border-[#E7E5E2] flex justify-end gap-2">
+            <button onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#6B6B6B]">Cancelar</button>
             <button
               onClick={handleSubmit}
-              className="px-4 py-2 bg-[#B33A3A] text-white text-xs font-bold rounded-xl hover:bg-[#962e2e]"
+              className="px-4 py-2 bg-[#B3403D] text-white text-xs font-bold rounded-xl hover:bg-[#8A2E2E]"
             >
               Confirmar Baixa
             </button>

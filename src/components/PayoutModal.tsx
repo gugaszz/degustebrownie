@@ -52,18 +52,18 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, selle
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-[#EAE5E2] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#EAE5E2] flex items-center justify-between bg-[#F8F6F4]">
+      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-[#E7E5E2] overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#E7E5E2] flex items-center justify-between bg-[#F6F5F3]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#237A4B] text-white flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#1B8A4F] text-white flex items-center justify-center">
               <BadgeDollarSign className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#201A17]">Pagamento de Comissão</h3>
-              <p className="text-[11px] text-[#746A65]">Fechamento de repasse aos vendedores</p>
+              <h3 className="text-sm font-bold text-[#111111]">Pagamento de Comissão</h3>
+              <p className="text-[11px] text-[#6B6B6B]">Fechamento de repasse aos vendedores</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#746A65] hover:bg-[#EEE7E3]">
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6B6B] hover:bg-[#EDEBE8]">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -77,18 +77,18 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, selle
           )}
 
           {successMsg && (
-            <div className="p-3 rounded-xl bg-green-50 text-[#237A4B] text-xs flex items-start gap-2 font-semibold">
+            <div className="p-3 rounded-xl bg-green-50 text-[#1B8A4F] text-xs flex items-start gap-2 font-semibold">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-[#201A17] mb-1">Vendedor:</label>
+            <label className="block text-xs font-bold text-[#111111] mb-1">Vendedor:</label>
             <select
               value={selectedSellerId}
               onChange={e => setSelectedSellerId(e.target.value)}
-              className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+              className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
             >
               {sellers.map(s => {
                 const sPending = state.commissions
@@ -103,31 +103,31 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, selle
             </select>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#F8F6F4] border border-[#EAE5E2] flex items-center justify-between">
+          <div className="p-4 rounded-2xl bg-[#F6F5F3] border border-[#E7E5E2] flex items-center justify-between">
             <div>
-              <span className="text-xs text-[#746A65] block">Vendas acumuladas:</span>
-              <span className="font-bold text-sm text-[#201A17]">{pendingEntries.length} vendas aguardando</span>
+              <span className="text-xs text-[#6B6B6B] block">Vendas acumuladas:</span>
+              <span className="font-bold text-sm text-[#111111]">{pendingEntries.length} vendas aguardando</span>
             </div>
             <div className="text-right">
-              <span className="text-xs text-[#746A65] block">Total a Pagar:</span>
-              <span className="text-xl font-black text-[#237A4B] tabular-nums">
+              <span className="text-xs text-[#6B6B6B] block">Total a Pagar:</span>
+              <span className="text-xl font-black text-[#1B8A4F] tabular-nums">
                 {formatCurrency(totalPending)}
               </span>
             </div>
           </div>
 
-          <div className="max-h-36 overflow-y-auto space-y-1.5 border border-[#EAE5E2] rounded-xl p-2 bg-white">
-            <span className="text-[10px] uppercase font-bold text-[#746A65] px-1 block">Lançamentos Incluídos:</span>
+          <div className="max-h-36 overflow-y-auto space-y-1.5 border border-[#E7E5E2] rounded-xl p-2 bg-white">
+            <span className="text-[10px] uppercase font-bold text-[#6B6B6B] px-1 block">Lançamentos Incluídos:</span>
             {pendingEntries.length === 0 ? (
-              <p className="text-xs text-[#746A65] text-center py-2">Nenhum valor pendente.</p>
+              <p className="text-xs text-[#6B6B6B] text-center py-2">Nenhum valor pendente.</p>
             ) : (
               pendingEntries.map(e => (
-                <div key={e.id} className="flex justify-between items-center text-xs p-1.5 hover:bg-[#F8F6F4] rounded-lg">
+                <div key={e.id} className="flex justify-between items-center text-xs p-1.5 hover:bg-[#F6F5F3] rounded-lg">
                   <div>
-                    <span className="font-semibold text-[#201A17] block">{e.description}</span>
-                    <span className="text-[10px] text-[#746A65]">{formatDateTime(e.created_at)}</span>
+                    <span className="font-semibold text-[#111111] block">{e.description}</span>
+                    <span className="text-[10px] text-[#6B6B6B]">{formatDateTime(e.created_at)}</span>
                   </div>
-                  <span className="font-bold text-[#237A4B] tabular-nums">+{formatCurrency(e.amount)}</span>
+                  <span className="font-bold text-[#1B8A4F] tabular-nums">+{formatCurrency(e.amount)}</span>
                 </div>
               ))
             )}
@@ -135,11 +135,11 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, selle
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#201A17] mb-1">Forma de Pagamento:</label>
+              <label className="block text-xs font-bold text-[#111111] mb-1">Forma de Pagamento:</label>
               <select
                 value={paymentMethod}
                 onChange={e => setPaymentMethod(e.target.value as any)}
-                className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
               >
                 <option value="Pix">Pix</option>
                 <option value="Dinheiro">Dinheiro em Espécie</option>
@@ -147,25 +147,25 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, selle
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#201A17] mb-1">Observações do Recibo:</label>
+              <label className="block text-xs font-bold text-[#111111] mb-1">Observações do Recibo:</label>
               <input
                 type="text"
                 placeholder="Ex: Semana 36/2026"
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
-                className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
               />
             </div>
           </div>
 
-          <div className="pt-2 border-t border-[#EAE5E2] flex justify-end gap-2">
-            <button onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#746A65]">
+          <div className="pt-2 border-t border-[#E7E5E2] flex justify-end gap-2">
+            <button onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#6B6B6B]">
               Cancelar
             </button>
             <button
               onClick={handlePayout}
               disabled={totalPending <= 0}
-              className="px-5 py-2 bg-[#237A4B] text-white text-xs font-bold rounded-xl hover:bg-[#1b633d] disabled:opacity-40"
+              className="px-5 py-2 bg-[#1B8A4F] text-white text-xs font-bold rounded-xl hover:bg-[#145C36] disabled:opacity-40"
             >
               Confirmar Pagamento
             </button>

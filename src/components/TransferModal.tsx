@@ -140,21 +140,21 @@ export const TransferModal: React.FC<TransferModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-[#EAE5E2] overflow-hidden">
+      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-[#E7E5E2] overflow-hidden">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-[#EAE5E2] flex items-center justify-between bg-[#F8F6F4]">
+        <div className="px-5 py-4 border-b border-[#E7E5E2] flex items-center justify-between bg-[#F6F5F3]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#3B241C] text-white flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#141414] text-white flex items-center justify-center">
               <Boxes className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#201A17]">Separar Brownies para Vendedor</h3>
-              <p className="text-[11px] text-[#746A65]">Transferência de estoque central para vendedor</p>
+              <h3 className="text-sm font-bold text-[#111111]">Separar Brownies para Vendedor</h3>
+              <p className="text-[11px] text-[#6B6B6B]">Transferência de estoque central para vendedor</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#746A65] hover:bg-[#EEE7E3] hover:text-[#201A17] transition"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6B6B] hover:bg-[#EDEBE8] hover:text-[#111111] transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -170,7 +170,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
           )}
 
           {successMsg && (
-            <div className="p-3 rounded-xl bg-green-50 border border-green-200 text-[#237A4B] text-xs flex items-start gap-2 font-semibold">
+            <div className="p-3 rounded-xl bg-green-50 border border-green-200 text-[#1B8A4F] text-xs flex items-start gap-2 font-semibold">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
@@ -178,7 +178,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
 
           {/* 1. Seller Selection */}
           <div>
-            <label className="block text-xs font-bold text-[#201A17] mb-1.5">
+            <label className="block text-xs font-bold text-[#111111] mb-1.5">
               Selecione o Vendedor de Destino:
             </label>
             <select
@@ -188,7 +188,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
                 setSelectedSellerId(e.target.value);
                 setQuantities({});
               }}
-              className="w-full text-xs font-semibold bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2.5 text-[#201A17] focus:outline-none focus:border-[#3B241C]"
+              className="w-full text-xs font-semibold bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2.5 text-[#111111] focus:outline-none focus:border-[#141414]"
             >
               {sellers.map(s => (
                 <option key={s.id} value={s.id}>
@@ -201,16 +201,16 @@ export const TransferModal: React.FC<TransferModalProps> = ({
           {/* Smart Replenishment Trigger */}
           <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#B7791F]" />
+              <Sparkles className="w-4 h-4 text-[#A9761F]" />
               <div>
-                <span className="text-xs font-bold text-[#201A17] block">Sugestão de Reposição Inteligente</span>
-                <span className="text-[11px] text-[#746A65]">Calcula quantidade ideal para 1 dia de vendas</span>
+                <span className="text-xs font-bold text-[#111111] block">Sugestão de Reposição Inteligente</span>
+                <span className="text-[11px] text-[#6B6B6B]">Calcula quantidade ideal para 1 dia de vendas</span>
               </div>
             </div>
             <button
               onClick={applySmartSuggestion}
               type="button"
-              className="px-3 py-1.5 rounded-xl bg-[#B7791F] text-white text-xs font-bold hover:bg-[#9a6417] transition shadow-xs"
+              className="px-3 py-1.5 rounded-xl bg-[#A9761F] text-white text-xs font-bold hover:bg-[#8A6417] transition shadow-xs"
             >
               Preencher
             </button>
@@ -218,7 +218,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
 
           {/* Flavors list with comparative stock */}
           <div className="space-y-2.5">
-            <span className="block text-xs font-bold text-[#201A17]">
+            <span className="block text-xs font-bold text-[#111111]">
               Quantidade por Sabor:
             </span>
 
@@ -230,14 +230,14 @@ export const TransferModal: React.FC<TransferModalProps> = ({
               return (
                 <div
                   key={flavor.id}
-                  className="p-3.5 rounded-2xl border border-[#EAE5E2] bg-white flex items-center justify-between"
+                  className="p-3.5 rounded-2xl border border-[#E7E5E2] bg-white flex items-center justify-between"
                 >
                   <div>
-                    <span className="font-bold text-xs text-[#201A17] block">
+                    <span className="font-bold text-xs text-[#111111] block">
                       Brownie de {flavor.name}
                     </span>
-                    <div className="flex items-center gap-3 text-[11px] text-[#746A65] mt-0.5">
-                      <span>Central: <strong className="text-[#3B241C]">{centralAvail} un.</strong></span>
+                    <div className="flex items-center gap-3 text-[11px] text-[#6B6B6B] mt-0.5">
+                      <span>Central: <strong className="text-[#141414]">{centralAvail} un.</strong></span>
                       <span>•</span>
                       <span>Vendedor tem: <strong>{sellerCurrent} un.</strong></span>
                     </div>
@@ -248,18 +248,18 @@ export const TransferModal: React.FC<TransferModalProps> = ({
                       type="button"
                       onClick={() => handleQtyChange(flavor.id, -1)}
                       disabled={currentQty <= 0}
-                      className="w-8 h-8 rounded-lg border border-[#EAE5E2] bg-white text-[#201A17] hover:bg-[#EEE7E3] disabled:opacity-30 flex items-center justify-center transition"
+                      className="w-8 h-8 rounded-lg border border-[#E7E5E2] bg-white text-[#111111] hover:bg-[#EDEBE8] disabled:opacity-30 flex items-center justify-center transition"
                     >
                       <Minus className="w-3.5 h-3.5" />
                     </button>
-                    <span className="w-8 text-center font-bold text-sm text-[#3B241C] tabular-nums">
+                    <span className="w-8 text-center font-bold text-sm text-[#141414] tabular-nums">
                       {currentQty}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleQtyChange(flavor.id, 1)}
                       disabled={currentQty >= centralAvail}
-                      className="w-8 h-8 rounded-lg bg-[#3B241C] text-white hover:bg-[#2E1A14] disabled:opacity-30 flex items-center justify-center transition"
+                      className="w-8 h-8 rounded-lg bg-[#141414] text-white hover:bg-[#0A0A0A] disabled:opacity-30 flex items-center justify-center transition"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -271,7 +271,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
 
           {/* Notes */}
           <div>
-            <label className="block text-[11px] font-semibold text-[#746A65] mb-1">
+            <label className="block text-[11px] font-semibold text-[#6B6B6B] mb-1">
               Observações (opcional):
             </label>
             <input
@@ -279,21 +279,21 @@ export const TransferModal: React.FC<TransferModalProps> = ({
               placeholder="Ex: Entrega matinal para ponto no shopping"
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17] focus:outline-none focus:border-[#3B241C]"
+              className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111] focus:outline-none focus:border-[#141414]"
             />
           </div>
 
           {/* Footer Summary & Action */}
-          <div className="pt-2 border-t border-[#EAE5E2] flex items-center justify-between">
+          <div className="pt-2 border-t border-[#E7E5E2] flex items-center justify-between">
             <div>
-              <span className="text-xs text-[#746A65] block">Total a transferir:</span>
-              <span className="text-lg font-black text-[#3B241C]">{totalTransferUnits} brownies</span>
+              <span className="text-xs text-[#6B6B6B] block">Total a transferir:</span>
+              <span className="text-lg font-black text-[#141414]">{totalTransferUnits} brownies</span>
             </div>
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl border border-[#EAE5E2] text-xs font-semibold text-[#746A65] hover:bg-[#F8F6F4]"
+                className="px-4 py-2.5 rounded-xl border border-[#E7E5E2] text-xs font-semibold text-[#6B6B6B] hover:bg-[#F6F5F3]"
               >
                 Cancelar
               </button>
@@ -302,7 +302,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
                 id="btn-confirm-transfer"
                 onClick={handleTransfer}
                 disabled={totalTransferUnits <= 0}
-                className="px-5 py-2.5 rounded-xl bg-[#3B241C] text-white text-xs font-bold hover:bg-[#2E1A14] transition disabled:opacity-40 shadow-sm flex items-center gap-1.5"
+                className="px-5 py-2.5 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A] transition disabled:opacity-40 shadow-sm flex items-center gap-1.5"
               >
                 <span>Confirmar Saída</span>
                 <ArrowRight className="w-3.5 h-3.5" />

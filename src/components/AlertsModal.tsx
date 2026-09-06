@@ -54,18 +54,18 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onNav
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-[#EAE5E2] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#EAE5E2] flex items-center justify-between bg-[#F8F6F4]">
+      <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-[#E7E5E2] overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#E7E5E2] flex items-center justify-between bg-[#F6F5F3]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#3B241C] text-white flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#141414] text-white flex items-center justify-center">
               <Bell className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#201A17]">Central de Alertas Operacionais</h3>
-              <p className="text-[11px] text-[#746A65]">Monitoramento de estoque, validade FEFO e finanças</p>
+              <h3 className="text-sm font-bold text-[#111111]">Central de Alertas Operacionais</h3>
+              <p className="text-[11px] text-[#6B6B6B]">Monitoramento de estoque, validade FEFO e finanças</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#746A65] hover:bg-[#EEE7E3]">
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6B6B] hover:bg-[#EDEBE8]">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -74,10 +74,10 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onNav
           {/* Central Stock Alert */}
           {centralStock < 100 && (
             <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-3">
-              <Boxes className="w-5 h-5 text-[#B7791F] shrink-0 mt-0.5" />
+              <Boxes className="w-5 h-5 text-[#A9761F] shrink-0 mt-0.5" />
               <div className="flex-1">
-                <span className="font-bold text-xs text-[#201A17] block">Estoque Central Baixo</span>
-                <p className="text-[11px] text-[#746A65] mt-0.5 leading-relaxed">
+                <span className="font-bold text-xs text-[#111111] block">Estoque Central Baixo</span>
+                <p className="text-[11px] text-[#6B6B6B] mt-0.5 leading-relaxed">
                   Restam apenas <strong>{centralStock} brownies</strong> no estoque central. Considere emitir um novo pedido com fornecedor.
                 </p>
               </div>
@@ -87,20 +87,20 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onNav
           {/* Expiring batches */}
           {expiringBatches.length > 0 ? (
             <div className="p-3.5 rounded-2xl bg-red-50/70 border border-red-200 flex items-start gap-3">
-              <Clock className="w-5 h-5 text-[#B33A3A] shrink-0 mt-0.5" />
+              <Clock className="w-5 h-5 text-[#B3403D] shrink-0 mt-0.5" />
               <div className="flex-1">
-                <span className="font-bold text-xs text-[#201A17] block">Lotes Próximos do Vencimento (FEFO)</span>
-                <p className="text-[11px] text-[#746A65] mb-2">
+                <span className="font-bold text-xs text-[#111111] block">Lotes Próximos do Vencimento (FEFO)</span>
+                <p className="text-[11px] text-[#6B6B6B] mb-2">
                   Priorize a saída dos lotes mais antigos para evitar perdas:
                 </p>
                 <div className="space-y-1.5">
                   {expiringBatches.map(b => (
                     <div key={b.id} className="text-xs bg-white/80 p-2 rounded-xl border border-red-100 flex justify-between">
                       <div>
-                        <strong className="text-[#201A17]">{b.flavor_name} ({b.batch_reference})</strong>
-                        <span className="text-[10px] text-[#746A65] block">Vence em: {formatDate(b.expiration_date)}</span>
+                        <strong className="text-[#111111]">{b.flavor_name} ({b.batch_reference})</strong>
+                        <span className="text-[10px] text-[#6B6B6B] block">Vence em: {formatDate(b.expiration_date)}</span>
                       </div>
-                      <span className="font-bold text-[#B33A3A] self-center">
+                      <span className="font-bold text-[#B3403D] self-center">
                         {b.diffDays <= 0 ? 'VENCE HOJE' : `${b.diffDays} dias restantes`}
                       </span>
                     </div>
@@ -109,8 +109,8 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onNav
               </div>
             </div>
           ) : (
-            <div className="p-3 rounded-xl bg-[#F8F6F4] text-xs text-[#746A65] flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#237A4B]" />
+            <div className="p-3 rounded-xl bg-[#F6F5F3] text-xs text-[#6B6B6B] flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#1B8A4F]" />
               <span>Nenhum lote crítico com vencimento nos próximos 7 dias.</span>
             </div>
           )}
@@ -118,17 +118,17 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onNav
           {/* Seller low stock alerts */}
           {sellersWithLowStock.length > 0 && (
             <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-[#B7791F] shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-[#A9761F] shrink-0 mt-0.5" />
               <div className="flex-1">
-                <span className="font-bold text-xs text-[#201A17] block">Vendedores Precisando de Reposição</span>
-                <p className="text-[11px] text-[#746A65] mb-2">
+                <span className="font-bold text-xs text-[#111111] block">Vendedores Precisando de Reposição</span>
+                <p className="text-[11px] text-[#6B6B6B] mb-2">
                   Estoque com vendedor abaixo de 10 unidades:
                 </p>
                 <div className="space-y-1.5">
                   {sellersWithLowStock.map(({ seller, totalStock }) => (
                     <div key={seller.id} className="text-xs bg-white/80 p-2 rounded-xl border border-amber-100 flex justify-between items-center">
-                      <span className="font-semibold text-[#201A17]">{seller.name}</span>
-                      <span className="font-bold text-[#B7791F]">{totalStock} brownies</span>
+                      <span className="font-semibold text-[#111111]">{seller.name}</span>
+                      <span className="font-bold text-[#A9761F]">{totalStock} brownies</span>
                     </div>
                   ))}
                 </div>
@@ -139,13 +139,13 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onNav
           {/* Pending Commissions */}
           {pendingCommissions.length > 0 && (
             <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 flex items-start gap-3">
-              <BadgeDollarSign className="w-5 h-5 text-[#237A4B] shrink-0 mt-0.5" />
+              <BadgeDollarSign className="w-5 h-5 text-[#1B8A4F] shrink-0 mt-0.5" />
               <div className="flex-1">
-                <span className="font-bold text-xs text-[#201A17] block">Comissões Acumuladas Pendentes</span>
-                <p className="text-[11px] text-[#746A65] mb-1">
+                <span className="font-bold text-xs text-[#111111] block">Comissões Acumuladas Pendentes</span>
+                <p className="text-[11px] text-[#6B6B6B] mb-1">
                   Existem <strong>{pendingCommissions.length} comissões</strong> aguardando repasse aos vendedores.
                 </p>
-                <div className="text-xs font-bold text-[#237A4B]">
+                <div className="text-xs font-bold text-[#1B8A4F]">
                   Total a pagar: {formatCurrency(totalPendingAmt)}
                 </div>
               </div>
@@ -153,8 +153,8 @@ export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onNav
           )}
         </div>
 
-        <div className="px-5 py-3.5 border-t border-[#EAE5E2] bg-[#F8F6F4] flex justify-end">
-          <button onClick={onClose} className="px-4 py-2 bg-[#3B241C] text-white text-xs font-bold rounded-xl">
+        <div className="px-5 py-3.5 border-t border-[#E7E5E2] bg-[#F6F5F3] flex justify-end">
+          <button onClick={onClose} className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl">
             Entendido
           </button>
         </div>

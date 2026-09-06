@@ -58,18 +58,18 @@ export const NewSellerModal: React.FC<NewSellerModalProps> = ({ isOpen, onClose 
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#EAE5E2] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#EAE5E2] flex items-center justify-between bg-[#F8F6F4]">
+      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#E7E5E2] overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#E7E5E2] flex items-center justify-between bg-[#F6F5F3]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#3B241C] text-white flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#141414] text-white flex items-center justify-center">
               <UserPlus className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#201A17]">Novo Vendedor</h3>
-              <p className="text-[11px] text-[#746A65]">Cadastro e liberação de estoque individual</p>
+              <h3 className="text-sm font-bold text-[#111111]">Novo Vendedor</h3>
+              <p className="text-[11px] text-[#6B6B6B]">Cadastro e liberação de estoque individual</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#746A65] hover:bg-[#EEE7E3]">
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6B6B] hover:bg-[#EDEBE8]">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -83,50 +83,50 @@ export const NewSellerModal: React.FC<NewSellerModalProps> = ({ isOpen, onClose 
           )}
 
           {successMsg && (
-            <div className="p-3 rounded-xl bg-green-50 text-[#237A4B] text-xs flex items-start gap-2 font-semibold">
+            <div className="p-3 rounded-xl bg-green-50 text-[#1B8A4F] text-xs flex items-start gap-2 font-semibold">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-[#201A17] mb-1">Nome Completo:</label>
+            <label className="block text-xs font-bold text-[#111111] mb-1">Nome Completo:</label>
             <input
               type="text"
               required
               placeholder="Ex: Lucas Ferreira"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17] focus:outline-none focus:border-[#3B241C]"
+              className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111] focus:outline-none focus:border-[#141414]"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-[#201A17] mb-1">WhatsApp / Telefone:</label>
+              <label className="block text-xs font-bold text-[#111111] mb-1">WhatsApp / Telefone:</label>
               <input
                 type="text"
                 placeholder="(85) 99999-0000"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
-                className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#201A17] mb-1">E-mail de Acesso:</label>
+              <label className="block text-xs font-bold text-[#111111] mb-1">E-mail de Acesso:</label>
               <input
                 type="email"
                 required
                 placeholder="vendedor@email.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#201A17] mb-1">Senha de Acesso:</label>
+            <label className="block text-xs font-bold text-[#111111] mb-1">Senha de Acesso:</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -135,25 +135,25 @@ export const NewSellerModal: React.FC<NewSellerModalProps> = ({ isOpen, onClose 
                 placeholder="Mínimo 4 caracteres"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 pr-9 text-[#201A17]"
+                className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 pr-9 text-[#111111]"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8C8079] hover:text-[#201A17]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#9A9A9A] hover:text-[#111111]"
               >
                 {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
             </div>
-            <p className="text-[11px] text-[#746A65] mt-1">
+            <p className="text-[11px] text-[#6B6B6B] mt-1">
               Só você (proprietário) cria contas. Depois de cadastrado, o vendedor entra com este e-mail e senha.
             </p>
           </div>
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <label className="text-xs font-bold text-[#201A17]">Comissão Padrão:</label>
-              <span className="text-xs font-black text-[#3B241C]">{commissionValue}% do lucro bruto</span>
+              <label className="text-xs font-bold text-[#111111]">Comissão Padrão:</label>
+              <span className="text-xs font-black text-[#141414]">{commissionValue}% do lucro bruto</span>
             </div>
             <input
               type="range"
@@ -162,20 +162,20 @@ export const NewSellerModal: React.FC<NewSellerModalProps> = ({ isOpen, onClose 
               step={5}
               value={commissionValue}
               onChange={e => setCommissionValue(Number(e.target.value))}
-              className="w-full accent-[#3B241C]"
+              className="w-full accent-[#141414]"
             />
-            <p className="text-[11px] text-[#746A65] mt-1">
+            <p className="text-[11px] text-[#6B6B6B] mt-1">
               Por padrão, o vendedor recebe 50% do lucro gerado pelas suas vendas.
             </p>
           </div>
 
-          <div className="pt-2 border-t border-[#EAE5E2] flex justify-end gap-2">
-            <button type="button" onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#746A65]">
+          <div className="pt-2 border-t border-[#E7E5E2] flex justify-end gap-2">
+            <button type="button" onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#6B6B6B]">
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-[#3B241C] text-white text-xs font-bold rounded-xl hover:bg-[#2E1A14]"
+              className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A]"
             >
               Criar Vendedor
             </button>

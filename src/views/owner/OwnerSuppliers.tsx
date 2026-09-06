@@ -48,16 +48,16 @@ export const OwnerSuppliers: React.FC = () => {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#201A17] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-[#111111] tracking-tight">
             Fornecedores
           </h1>
-          <p className="text-xs text-[#746A65] mt-0.5">
+          <p className="text-xs text-[#6B6B6B] mt-0.5">
             Cadastro das doceiras e confeitarias parceiras produtoras dos brownies
           </p>
         </div>
         <button
           onClick={() => setIsAdding(true)}
-          className="px-4 py-2 rounded-xl bg-[#3B241C] text-white text-xs font-bold hover:bg-[#2E1A14] transition flex items-center gap-1.5 shadow-sm"
+          className="px-4 py-2 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A] transition flex items-center gap-1.5 shadow-sm"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Cadastrar Fornecedor</span>
@@ -67,52 +67,52 @@ export const OwnerSuppliers: React.FC = () => {
       {/* Add Modal */}
       {isAdding && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl border border-[#EAE5E2] space-y-4">
-            <h3 className="font-bold text-sm text-[#201A17]">Novo Fornecedor / Confeitaria</h3>
+          <div className="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl border border-[#E7E5E2] space-y-4">
+            <h3 className="font-bold text-sm text-[#111111]">Novo Fornecedor / Confeitaria</h3>
             <form onSubmit={handleAdd} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-[#201A17] mb-1">Nome Fantasia:</label>
+                <label className="block text-xs font-bold text-[#111111] mb-1">Nome Fantasia:</label>
                 <input
                   type="text"
                   required
                   placeholder="Ex: Doçura Brownies Artesanais"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                  className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#201A17] mb-1">Contato / Confeiteira:</label>
+                  <label className="block text-xs font-bold text-[#111111] mb-1">Contato / Confeiteira:</label>
                   <input
                     type="text"
                     placeholder="Ex: Dona Mariana"
                     value={contactName}
                     onChange={e => setContactName(e.target.value)}
-                    className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                    className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#201A17] mb-1">WhatsApp:</label>
+                  <label className="block text-xs font-bold text-[#111111] mb-1">WhatsApp:</label>
                   <input
                     type="text"
                     placeholder="(85) 98888-0000"
                     value={phone}
                     onChange={e => setPhone(e.target.value)}
-                    className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                    className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#201A17] mb-1">Endereço / Bairro:</label>
+                <label className="block text-xs font-bold text-[#111111] mb-1">Endereço / Bairro:</label>
                 <input
                   type="text"
                   placeholder="Ex: Rua das Flores, 120 - Aldeota"
                   value={address}
                   onChange={e => setAddress(e.target.value)}
-                  className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+                  className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
                 />
               </div>
 
@@ -120,13 +120,13 @@ export const OwnerSuppliers: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAdding(false)}
-                  className="px-3 py-2 text-xs font-semibold text-[#746A65]"
+                  className="px-3 py-2 text-xs font-semibold text-[#6B6B6B]"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#3B241C] text-white text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl"
                 >
                   Salvar Fornecedor
                 </button>
@@ -138,17 +138,17 @@ export const OwnerSuppliers: React.FC = () => {
 
       {/* Grid of suppliers */}
       {state.suppliers.length === 0 ? (
-        <div className="bg-white rounded-3xl p-10 border border-[#EAE5E2] text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#F8F6F4] text-[#746A65] flex items-center justify-center mx-auto">
+        <div className="bg-white rounded-3xl p-10 border border-[#E7E5E2] text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#F6F5F3] text-[#6B6B6B] flex items-center justify-center mx-auto">
             <Building2 className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold text-[#201A17]">Nenhum fornecedor cadastrado</h3>
-          <p className="text-xs text-[#746A65] max-w-sm mx-auto">
+          <h3 className="text-sm font-bold text-[#111111]">Nenhum fornecedor cadastrado</h3>
+          <p className="text-xs text-[#6B6B6B] max-w-sm mx-auto">
             Cadastre suas confeitarias parceiras para gerenciar pedidos de compra e entrada de lotes no estoque central.
           </p>
           <button
             onClick={() => setIsAdding(true)}
-            className="px-4 py-2 rounded-xl bg-[#3B241C] text-white text-xs font-bold hover:bg-[#2E1A14] transition inline-flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A] transition inline-flex items-center gap-1.5 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Cadastrar Primeiro Fornecedor</span>
@@ -161,21 +161,21 @@ export const OwnerSuppliers: React.FC = () => {
           const totalSpent = supplierPurchases.reduce((s, p) => s + p.total_amount, 0);
 
           return (
-            <div key={supplier.id} className="p-5 rounded-3xl bg-white border border-[#EAE5E2] shadow-xs space-y-4">
+            <div key={supplier.id} className="p-5 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs space-y-4">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#F8F6F4] text-[#3B241C] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-[#F6F5F3] text-[#141414] flex items-center justify-center">
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-[#201A17]">{supplier.name}</h3>
+                    <h3 className="font-bold text-sm text-[#111111]">{supplier.name}</h3>
                     {supplier.contact_name && (
-                      <span className="text-xs text-[#746A65]">Resp: {supplier.contact_name}</span>
+                      <span className="text-xs text-[#6B6B6B]">Resp: {supplier.contact_name}</span>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-[#237A4B]">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-[#1B8A4F]">
                     Ativo
                   </span>
                   <button
@@ -188,29 +188,29 @@ export const OwnerSuppliers: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-1.5 text-xs text-[#746A65]">
+              <div className="space-y-1.5 text-xs text-[#6B6B6B]">
                 {supplier.phone && (
                   <div className="flex items-center gap-2">
-                    <Phone className="w-3.5 h-3.5 text-[#3B241C]" />
+                    <Phone className="w-3.5 h-3.5 text-[#141414]" />
                     <span>{supplier.phone}</span>
                   </div>
                 )}
                 {supplier.address && (
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-[#3B241C]" />
+                    <MapPin className="w-3.5 h-3.5 text-[#141414]" />
                     <span>{supplier.address}</span>
                   </div>
                 )}
               </div>
 
-              <div className="pt-3 border-t border-[#EAE5E2] flex items-center justify-between text-xs">
+              <div className="pt-3 border-t border-[#E7E5E2] flex items-center justify-between text-xs">
                 <div>
-                  <span className="text-[10px] text-[#746A65] block">Pedidos realizados:</span>
-                  <strong className="text-[#201A17]">{supplierPurchases.length} compras</strong>
+                  <span className="text-[10px] text-[#6B6B6B] block">Pedidos realizados:</span>
+                  <strong className="text-[#111111]">{supplierPurchases.length} compras</strong>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-[#746A65] block">Total comprado:</span>
-                  <strong className="text-[#237A4B] font-bold tabular-nums">
+                  <span className="text-[10px] text-[#6B6B6B] block">Total comprado:</span>
+                  <strong className="text-[#1B8A4F] font-bold tabular-nums">
                     {formatCurrency(totalSpent)}
                   </strong>
                 </div>
@@ -224,20 +224,20 @@ export const OwnerSuppliers: React.FC = () => {
       {/* Delete Supplier Confirmation Modal */}
       {supplierToDelete && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-[#EAE5E2] space-y-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-[#E7E5E2] space-y-4">
             <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto">
               <Trash2 className="w-5 h-5" />
             </div>
             <div className="text-center">
-              <h3 className="font-bold text-sm text-[#201A17]">Excluir Fornecedor?</h3>
-              <p className="text-xs text-[#746A65] mt-1">
+              <h3 className="font-bold text-sm text-[#111111]">Excluir Fornecedor?</h3>
+              <p className="text-xs text-[#6B6B6B] mt-1">
                 Deseja realmente remover este fornecedor da sua lista de parceiros?
               </p>
             </div>
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setSupplierToDelete(null)}
-                className="flex-1 py-2 rounded-xl border border-[#EAE5E2] text-xs font-semibold text-[#746A65] hover:bg-[#F8F6F4]"
+                className="flex-1 py-2 rounded-xl border border-[#E7E5E2] text-xs font-semibold text-[#6B6B6B] hover:bg-[#F6F5F3]"
               >
                 Cancelar
               </button>

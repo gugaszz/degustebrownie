@@ -1,22 +1,46 @@
 @import "tailwindcss";
 
+/*
+  Design system: "iDraft Monochrome" — see /design-system.json at the project root
+  for the full token set this file implements (color, type scale, radius, shadow).
+*/
 @theme {
-  /* Body/UI typeface actually wired up (previously loaded but never applied) */
   --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-  /* Warm editorial serif for hero numbers & section titles — the signature of the brand */
-  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  /* Kept for markup written as font-display; same face, monochrome system has no serif */
+  --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
 
-  /* Brand tokens (cocoa palette) so screens stop repeating raw hex codes */
-  --color-cocoa-950: #1a120d;
-  --color-cocoa-900: #201a17;
-  --color-cocoa-800: #3b241c;
-  --color-cocoa-700: #4a2f24;
-  --color-cocoa-500: #746a65;
-  --color-cocoa-200: #eae5e2;
-  --color-cocoa-100: #f2ede9;
-  --color-cocoa-50: #fbf9f8;
-  --color-caramel-500: #c9822f;
-  --color-caramel-400: #dba24f;
+  /* Neutral "ink" scale — text, primary buttons, active states, the one hero card */
+  --color-ink-950: #0a0a0a;
+  --color-ink-900: #111111;
+  --color-ink-800: #1a1a1a;
+  --color-ink-700: #2b2b2b;
+  --color-ink-500: #6b6b6b;
+  --color-ink-300: #9a9a9a;
+  --color-ink-200: #d9d7d3;
+  --color-ink-100: #e7e5e2;
+  --color-ink-50: #f6f5f3;
+
+  --color-canvas: #f3f1ee;
+
+  /* Functional colors: not present in the reference (fully monochrome); kept muted */
+  --color-success: #1b8a4f;
+  --color-success-dark: #145c36;
+  --color-warning: #a9761f;
+  --color-danger: #b3403d;
+  --color-danger-dark: #8a2e2e;
+
+  /* Softer, larger-blur ambient shadows instead of Tailwind's default tight ones */
+  --shadow-2xs: 0 1px 2px rgba(20, 20, 20, 0.03);
+  --shadow-xs: 0 1px 2px rgba(20, 20, 20, 0.03), 0 10px 22px -10px rgba(20, 20, 20, 0.10);
+  --shadow-sm: 0 1px 2px rgba(20, 20, 20, 0.03), 0 16px 32px -12px rgba(20, 20, 20, 0.10);
+  --shadow-md: 0 2px 4px rgba(20, 20, 20, 0.04), 0 20px 40px -12px rgba(20, 20, 20, 0.12);
+  --shadow-lg: 0 4px 8px rgba(20, 20, 20, 0.05), 0 28px 56px -16px rgba(20, 20, 20, 0.16);
+  --shadow-xl: 0 8px 16px rgba(20, 20, 20, 0.06), 0 8px 20px -6px rgba(20, 20, 20, 0.20);
+
+  /* Larger, more confident corner radii to match the reference cards */
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-3xl: 28px;
 }
 
 html {
@@ -25,18 +49,28 @@ html {
 
 .font-display {
   font-family: var(--font-display);
-  font-feature-settings: 'ss01' 1;
 }
 
-/* Signature texture: a soft cocoa glow instead of flat white, used behind hero sections */
-.brand-hero-surface {
-  background:
-    radial-gradient(120% 140% at 100% 0%, rgba(201, 130, 47, 0.16) 0%, rgba(201, 130, 47, 0) 55%),
-    radial-gradient(90% 120% at 0% 100%, rgba(59, 36, 28, 0.9) 0%, rgba(59, 36, 28, 0) 60%),
-    linear-gradient(135deg, #201a17 0%, #3b241c 55%, #4a2f24 100%);
+/* Signature texture: soft blurred gray blobs behind the layout, standing in for the
+   reference screenshot's frosted-marble backdrop. Applied to the page body. */
+.app-canvas-texture {
+  background-color: #f3f1ee;
+  background-image:
+    radial-gradient(38% 32% at 12% 8%, rgba(220, 218, 213, 0.9) 0%, rgba(220, 218, 213, 0) 70%),
+    radial-gradient(42% 38% at 92% 18%, rgba(245, 244, 241, 0.95) 0%, rgba(245, 244, 241, 0) 65%),
+    radial-gradient(46% 40% at 22% 92%, rgba(201, 199, 194, 0.7) 0%, rgba(201, 199, 194, 0) 70%),
+    radial-gradient(40% 36% at 88% 90%, rgba(220, 218, 213, 0.8) 0%, rgba(220, 218, 213, 0) 70%);
+  background-attachment: fixed;
+}
+
+/* Solid near-black "hero" card treatment — exactly one per screen, for the single
+   most important metric, per the reference dashboard. */
+.card-hero-dark {
+  background: var(--color-ink-900);
+  color: #ffffff;
 }
 
 ::selection {
-  background: #eee7e3;
-  color: #3b241c;
+  background: #111111;
+  color: #ffffff;
 }

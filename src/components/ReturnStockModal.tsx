@@ -55,18 +55,18 @@ export const ReturnStockModal: React.FC<ReturnStockModalProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#EAE5E2] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#EAE5E2] flex items-center justify-between bg-[#F8F6F4]">
+      <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-[#E7E5E2] overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#E7E5E2] flex items-center justify-between bg-[#F6F5F3]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#3B241C] text-white flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-[#141414] text-white flex items-center justify-center">
               <ArrowDownLeft className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#201A17]">Devolver Brownies ao Central</h3>
-              <p className="text-[11px] text-[#746A65]">Retorno de estoque do vendedor para o proprietário</p>
+              <h3 className="text-sm font-bold text-[#111111]">Devolver Brownies ao Central</h3>
+              <p className="text-[11px] text-[#6B6B6B]">Retorno de estoque do vendedor para o proprietário</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#746A65] hover:bg-[#EEE7E3]">
+          <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6B6B] hover:bg-[#EDEBE8]">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -80,21 +80,21 @@ export const ReturnStockModal: React.FC<ReturnStockModalProps> = ({ isOpen, onCl
           )}
 
           {successMsg && (
-            <div className="p-3 rounded-xl bg-green-50 text-[#237A4B] text-xs flex items-start gap-2 font-semibold">
+            <div className="p-3 rounded-xl bg-green-50 text-[#1B8A4F] text-xs flex items-start gap-2 font-semibold">
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-[#201A17] mb-1">Vendedor:</label>
+            <label className="block text-xs font-bold text-[#111111] mb-1">Vendedor:</label>
             <select
               value={selectedSellerId}
               onChange={e => {
                 setSelectedSellerId(e.target.value);
                 setQuantities({});
               }}
-              className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2.5 text-[#201A17]"
+              className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2.5 text-[#111111]"
             >
               {sellers.map(s => (
                 <option key={s.id} value={s.id}>{s.name}</option>
@@ -103,15 +103,15 @@ export const ReturnStockModal: React.FC<ReturnStockModalProps> = ({ isOpen, onCl
           </div>
 
           <div className="space-y-2.5">
-            <span className="block text-xs font-bold text-[#201A17]">Unidades a devolver por sabor:</span>
+            <span className="block text-xs font-bold text-[#111111]">Unidades a devolver por sabor:</span>
             {activeFlavors.map(flavor => {
               const stock = sellerLocation ? getFlavorStock(sellerLocation.id, flavor.id) : 0;
               const current = quantities[flavor.id] || 0;
               return (
-                <div key={flavor.id} className="p-3 rounded-xl border border-[#EAE5E2] flex items-center justify-between">
+                <div key={flavor.id} className="p-3 rounded-xl border border-[#E7E5E2] flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-bold text-[#201A17] block">{flavor.name}</span>
-                    <span className="text-[11px] text-[#746A65]">Com o vendedor: {stock} un.</span>
+                    <span className="text-xs font-bold text-[#111111] block">{flavor.name}</span>
+                    <span className="text-[11px] text-[#6B6B6B]">Com o vendedor: {stock} un.</span>
                   </div>
                   <input
                     type="number"
@@ -119,7 +119,7 @@ export const ReturnStockModal: React.FC<ReturnStockModalProps> = ({ isOpen, onCl
                     max={stock}
                     value={current}
                     onChange={e => handleQtyChange(flavor.id, parseInt(e.target.value) || 0)}
-                    className="w-16 text-center text-xs font-bold bg-[#F8F6F4] border border-[#EAE5E2] rounded-lg py-1.5"
+                    className="w-16 text-center text-xs font-bold bg-[#F6F5F3] border border-[#E7E5E2] rounded-lg py-1.5"
                   />
                 </div>
               );
@@ -127,24 +127,24 @@ export const ReturnStockModal: React.FC<ReturnStockModalProps> = ({ isOpen, onCl
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-[#746A65] mb-1">Motivo / Observações:</label>
+            <label className="block text-[11px] font-semibold text-[#6B6B6B] mb-1">Motivo / Observações:</label>
             <input
               type="text"
               placeholder="Ex: Fim do turno, sobra do dia"
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2 text-[#201A17]"
+              className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2 text-[#111111]"
             />
           </div>
 
-          <div className="pt-2 border-t border-[#EAE5E2] flex items-center justify-between">
-            <span className="text-xs text-[#746A65]">Total: <strong className="text-[#3B241C] text-sm">{totalReturnUnits} un.</strong></span>
+          <div className="pt-2 border-t border-[#E7E5E2] flex items-center justify-between">
+            <span className="text-xs text-[#6B6B6B]">Total: <strong className="text-[#141414] text-sm">{totalReturnUnits} un.</strong></span>
             <div className="flex gap-2">
-              <button onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#746A65]">Cancelar</button>
+              <button onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#6B6B6B]">Cancelar</button>
               <button
                 onClick={handleReturn}
                 disabled={totalReturnUnits <= 0}
-                className="px-4 py-2 bg-[#3B241C] text-white text-xs font-bold rounded-xl disabled:opacity-40"
+                className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl disabled:opacity-40"
               >
                 Confirmar Devolução
               </button>

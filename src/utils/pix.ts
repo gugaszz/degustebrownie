@@ -143,7 +143,7 @@ export async function generateQrCodeDataUrl(payload: string): Promise<string> {
       margin: 2,
       scale: 8,
       color: {
-        dark: '#201A17',
+        dark: '#111111',
         light: '#FFFFFF'
       }
     });

@@ -105,7 +105,7 @@ function MainLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#1E1612] flex flex-col lg:flex-row font-sans selection:bg-[#261B16] selection:text-white">
+    <div className="app-canvas-texture min-h-screen text-[#111111] flex flex-col lg:flex-row font-sans selection:bg-[#111111] selection:text-white">
       {/* Mobile Top Header, Bottom Bar & Drawer Menu */}
       <MobileNavigation
         currentTab={currentTab}
@@ -201,7 +201,7 @@ function MainLayout() {
       <button
         id="btn-fab-new-sale"
         onClick={() => setIsNewSaleOpen(true)}
-        className="fixed right-5 bottom-24 lg:bottom-6 z-40 w-14 h-14 rounded-full bg-[#3B241C] text-white shadow-xl hover:bg-[#2E1A14] active:scale-95 transition flex items-center justify-center"
+        className="fixed right-5 bottom-24 lg:bottom-6 z-40 w-14 h-14 rounded-full bg-[#141414] text-white shadow-xl hover:bg-[#0A0A0A] active:scale-95 transition flex items-center justify-center"
         title="Registrar Nova Venda"
         aria-label="Registrar Nova Venda"
       >

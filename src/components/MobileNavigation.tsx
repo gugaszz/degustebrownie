@@ -99,12 +99,12 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   return (
     <div className="lg:hidden">
       {/* Mobile Top Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#E8E3DF] px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-40 bg-white border-b border-[#E7E5E2] px-4 py-3 flex items-center justify-between">
         <div>
-          <span className="font-display text-base font-semibold text-[#1E1612] tracking-tight block">
+          <span className="font-display text-base font-semibold text-[#111111] tracking-tight block">
             Brownie Control
           </span>
-          <span className="text-[10px] text-[#8C8079] block">
+          <span className="text-[10px] text-[#9A9A9A] block">
             {currentUser.name.split(' ')[0]} ({isOwner ? 'Dono' : 'Vendedor'})
           </span>
         </div>
@@ -113,7 +113,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
           {/* PWA Download Button in Header */}
           <button
             onClick={onOpenInstallModal}
-            className="p-2 rounded-xl text-[#261B16] bg-[#FAF8F5] border border-[#E8E3DF] text-[11px] font-bold flex items-center gap-1 hover:bg-[#F2EDE9] transition"
+            className="p-2 rounded-xl text-[#141414] bg-[#F3F1EE] border border-[#E7E5E2] text-[11px] font-bold flex items-center gap-1 hover:bg-[#F1EFEC] transition"
             title="Instalar App no celular"
           >
             <Smartphone className="w-3.5 h-3.5" />
@@ -123,7 +123,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
           {isOwner && (
             <button
               onClick={onOpenAlerts}
-              className="relative p-2 rounded-xl text-[#8C8079] hover:text-[#1E1612] hover:bg-[#FAF8F5] transition"
+              className="relative p-2 rounded-xl text-[#9A9A9A] hover:text-[#111111] hover:bg-[#F3F1EE] transition"
             >
               <Bell className="w-4 h-4" />
               {hasAlerts && (
@@ -134,7 +134,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 
           <button
             onClick={() => setIsDrawerOpen(true)}
-            className="p-2 rounded-xl text-[#5C524C] hover:text-[#1E1612] hover:bg-[#FAF8F5] transition"
+            className="p-2 rounded-xl text-[#8A8A8A] hover:text-[#111111] hover:bg-[#F3F1EE] transition"
             aria-label="Abrir menu"
           >
             <Menu className="w-5 h-5" />
@@ -154,11 +154,11 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
           {/* Drawer Menu */}
           <div className="relative ml-auto w-full max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-right duration-200">
             <div>
-              <div className="p-4 border-b border-[#F0ECE9] flex items-center justify-between">
-                <span className="font-display text-sm font-semibold text-[#1E1612]">Navegação</span>
+              <div className="p-4 border-b border-[#EFEDEA] flex items-center justify-between">
+                <span className="font-display text-sm font-semibold text-[#111111]">Navegação</span>
                 <button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="p-1.5 rounded-lg text-[#8C8079] hover:bg-[#FAF8F5]"
+                  className="p-1.5 rounded-lg text-[#9A9A9A] hover:bg-[#F3F1EE]"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -174,11 +174,11 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                       onClick={() => handleSelect(tab.id)}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
                         isActive
-                          ? 'bg-[#261B16] text-white'
-                          : 'text-[#5C524C] hover:bg-[#FAF8F5]'
+                          ? 'bg-[#141414] text-white'
+                          : 'text-[#8A8A8A] hover:bg-[#F3F1EE]'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#8C8079]'}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-[#9A9A9A]'}`} />
                       <span>{tab.label}</span>
                     </button>
                   );
@@ -187,15 +187,15 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
             </div>
 
             {/* Bottom Actions */}
-            <div className="p-4 border-t border-[#F0ECE9] bg-[#FAF8F5] space-y-2">
+            <div className="p-4 border-t border-[#EFEDEA] bg-[#F3F1EE] space-y-2">
               <button
                 onClick={() => {
                   setIsDrawerOpen(false);
                   onOpenInstallModal();
                 }}
-                className="w-full py-2.5 px-3 rounded-xl bg-white border border-[#E8E3DF] text-xs font-bold text-[#1E1612] flex items-center justify-center gap-2 shadow-2xs"
+                className="w-full py-2.5 px-3 rounded-xl bg-white border border-[#E7E5E2] text-xs font-bold text-[#111111] flex items-center justify-center gap-2 shadow-2xs"
               >
-                <Smartphone className="w-4 h-4 text-[#261B16]" />
+                <Smartphone className="w-4 h-4 text-[#141414]" />
                 <span>Instalar como App no Celular</span>
               </button>
 
@@ -204,7 +204,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
                   setIsDrawerOpen(false);
                   onLogout();
                 }}
-                className="w-full py-2.5 px-3 rounded-xl bg-red-50 text-xs font-bold text-[#A82A2A] hover:bg-red-100 transition flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 px-3 rounded-xl bg-red-50 text-xs font-bold text-[#8A2E2E] hover:bg-red-100 transition flex items-center justify-center gap-1.5"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sair da Conta</span>
@@ -215,7 +215,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
       )}
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E8E3DF] px-2 py-1 flex items-center justify-around shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[#E7E5E2] px-2 py-1 flex items-center justify-around shadow-lg">
         {bottomTabs.map(tab => {
           const Icon = tab.icon;
           const isActive = currentTab === tab.id;
@@ -224,17 +224,17 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
               key={tab.id}
               onClick={() => onSelectTab(tab.id)}
               className={`flex flex-col items-center py-1.5 px-3 rounded-xl transition ${
-                isActive ? 'text-[#261B16] font-bold' : 'text-[#8C8079]'
+                isActive ? 'text-[#141414] font-bold' : 'text-[#9A9A9A]'
               }`}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-[#261B16]' : 'text-[#8C8079]'}`} />
+              <Icon className={`w-5 h-5 ${isActive ? 'text-[#141414]' : 'text-[#9A9A9A]'}`} />
               <span className="text-[10px] mt-0.5">{tab.label}</span>
             </button>
           );
         })}
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="flex flex-col items-center py-1.5 px-3 rounded-xl text-[#8C8079]"
+          className="flex flex-col items-center py-1.5 px-3 rounded-xl text-[#9A9A9A]"
         >
           <Menu className="w-5 h-5" />
           <span className="text-[10px] mt-0.5">Mais</span>

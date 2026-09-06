@@ -41,24 +41,24 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-[#201A17] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-[#111111] tracking-tight">
             Gestão de Vendedores
           </h1>
-          <p className="text-xs text-[#746A65] mt-0.5">
+          <p className="text-xs text-[#6B6B6B] mt-0.5">
             Cadastre vendedores, acompanhe estoques e configure taxas de comissão
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={onNavigatePerformance}
-            className="px-3.5 py-2 rounded-xl bg-white border border-[#EAE5E2] text-xs font-bold text-[#201A17] hover:bg-[#F8F6F4] transition"
+            className="px-3.5 py-2 rounded-xl bg-white border border-[#E7E5E2] text-xs font-bold text-[#111111] hover:bg-[#F6F5F3] transition"
           >
             Ver Ranking de Desempenho
           </button>
           <button
             id="btn-new-seller"
             onClick={onOpenNewSeller}
-            className="px-4 py-2 rounded-xl bg-[#3B241C] text-white text-xs font-bold hover:bg-[#2E1A14] transition flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A] transition flex items-center gap-1.5 shadow-sm"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Novo Vendedor</span>
@@ -68,17 +68,17 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
 
       {/* Sellers Cards Grid */}
       {sellers.length === 0 ? (
-        <div className="bg-white rounded-3xl p-10 border border-[#EAE5E2] text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#F8F6F4] text-[#746A65] flex items-center justify-center mx-auto">
+        <div className="bg-white rounded-3xl p-10 border border-[#E7E5E2] text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#F6F5F3] text-[#6B6B6B] flex items-center justify-center mx-auto">
             <Users className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold text-[#201A17]">Nenhum vendedor cadastrado</h3>
-          <p className="text-xs text-[#746A65] max-w-sm mx-auto">
+          <h3 className="text-sm font-bold text-[#111111]">Nenhum vendedor cadastrado</h3>
+          <p className="text-xs text-[#6B6B6B] max-w-sm mx-auto">
             Cadastre seus revendedores e vendedores de rua para separar lotes de brownies e acompanhar as comissões.
           </p>
           <button
             onClick={onOpenNewSeller}
-            className="px-4 py-2 rounded-xl bg-[#3B241C] text-white text-xs font-bold hover:bg-[#2E1A14] transition inline-flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A] transition inline-flex items-center gap-1.5 shadow-sm"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Cadastrar Primeiro Vendedor</span>
@@ -111,19 +111,19 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
             <div
               key={seller.id}
               className={`bg-white rounded-3xl p-5 border transition shadow-xs flex flex-col justify-between space-y-4 ${
-                isActive ? 'border-[#EAE5E2]' : 'border-gray-200 opacity-60 bg-gray-50'
+                isActive ? 'border-[#E7E5E2]' : 'border-gray-200 opacity-60 bg-gray-50'
               }`}
             >
               <div>
                 {/* Top row */}
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-[#3B241C] text-white font-bold flex items-center justify-center text-sm shadow-xs">
+                    <div className="w-10 h-10 rounded-2xl bg-[#141414] text-white font-bold flex items-center justify-center text-sm shadow-xs">
                       {seller.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="font-bold text-sm text-[#201A17]">{seller.name}</h3>
-                      <span className="text-[11px] text-[#746A65] block">
+                      <h3 className="font-bold text-sm text-[#111111]">{seller.name}</h3>
+                      <span className="text-[11px] text-[#6B6B6B] block">
                         Comissão: {seller.commission_value || 50}% do lucro
                       </span>
                     </div>
@@ -131,7 +131,7 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
                   <button
                     onClick={() => toggleSellerStatus(seller.id)}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold transition ${
-                      isActive ? 'bg-green-100 text-[#237A4B]' : 'bg-gray-200 text-[#746A65]'
+                      isActive ? 'bg-green-100 text-[#1B8A4F]' : 'bg-gray-200 text-[#6B6B6B]'
                     }`}
                   >
                     {isActive ? 'Ativo' : 'Inativo'}
@@ -139,16 +139,16 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
                 </div>
 
                 {/* Contact info */}
-                <div className="mt-3 space-y-1 text-xs text-[#746A65]">
+                <div className="mt-3 space-y-1 text-xs text-[#6B6B6B]">
                   {seller.phone && (
                     <div className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-[#3B241C]" />
+                      <Phone className="w-3.5 h-3.5 text-[#141414]" />
                       <span>{seller.phone}</span>
                     </div>
                   )}
                   {seller.email && (
                     <div className="flex items-center gap-2">
-                      <Mail className="w-3.5 h-3.5 text-[#3B241C]" />
+                      <Mail className="w-3.5 h-3.5 text-[#141414]" />
                       <span className="truncate">{seller.email}</span>
                     </div>
                   )}
@@ -156,15 +156,15 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
 
                 {/* Metrics Breakdown */}
                 <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 rounded-2xl bg-[#F8F6F4] border border-[#EAE5E2]">
-                    <span className="text-[10px] text-[#746A65] block">Estoque com ele:</span>
-                    <strong className="text-sm font-bold text-[#3B241C] tabular-nums">
+                  <div className="p-2.5 rounded-2xl bg-[#F6F5F3] border border-[#E7E5E2]">
+                    <span className="text-[10px] text-[#6B6B6B] block">Estoque com ele:</span>
+                    <strong className="text-sm font-bold text-[#141414] tabular-nums">
                       {currentStock} brownies
                     </strong>
                   </div>
-                  <div className="p-2.5 rounded-2xl bg-[#F8F6F4] border border-[#EAE5E2]">
-                    <span className="text-[10px] text-[#746A65] block">Vendas no filtro:</span>
-                    <strong className="text-sm font-bold text-[#201A17] tabular-nums">
+                  <div className="p-2.5 rounded-2xl bg-[#F6F5F3] border border-[#E7E5E2]">
+                    <span className="text-[10px] text-[#6B6B6B] block">Vendas no filtro:</span>
+                    <strong className="text-sm font-bold text-[#111111] tabular-nums">
                       {formatCurrency(revenuePeriod)} ({unitsSoldPeriod} un.)
                     </strong>
                   </div>
@@ -172,19 +172,19 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
 
                 {/* Commission Summary */}
                 <div className="mt-2 p-2.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 flex justify-between items-center text-xs">
-                  <span className="text-[11px] text-[#746A65]">Comissão a repassar:</span>
-                  <strong className="text-xs font-black text-[#B7791F] tabular-nums">
+                  <span className="text-[11px] text-[#6B6B6B]">Comissão a repassar:</span>
+                  <strong className="text-xs font-black text-[#A9761F] tabular-nums">
                     {formatCurrency(pendingCommission)}
                   </strong>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="pt-2 border-t border-[#EAE5E2] flex items-center gap-2">
+              <div className="pt-2 border-t border-[#E7E5E2] flex items-center gap-2">
                 <button
                   onClick={() => onOpenTransfer(seller.id)}
                   disabled={!isActive}
-                  className="flex-1 py-2 px-3 rounded-xl bg-[#3B241C] text-white text-xs font-bold hover:bg-[#2E1A14] transition disabled:opacity-40 flex items-center justify-center gap-1.5 shadow-xs"
+                  className="flex-1 py-2 px-3 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A] transition disabled:opacity-40 flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <Boxes className="w-3.5 h-3.5" />
                   <span>Separar Estoque</span>
@@ -195,7 +195,7 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
                     setNewPasswordValue('');
                     setPasswordError(null);
                   }}
-                  className="p-2 rounded-xl text-[#3B241C] hover:bg-[#F8F6F4] border border-transparent hover:border-[#EAE5E2] transition"
+                  className="p-2 rounded-xl text-[#141414] hover:bg-[#F6F5F3] border border-transparent hover:border-[#E7E5E2] transition"
                   title="Definir/alterar senha de acesso"
                 >
                   <KeyRound className="w-4 h-4" />
@@ -217,13 +217,13 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
       {/* Reset Seller Password Dialog */}
       {sellerToResetPassword && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-[#EAE5E2] space-y-4">
-            <div className="w-10 h-10 rounded-2xl bg-[#F8F6F4] text-[#3B241C] flex items-center justify-center mx-auto">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-[#E7E5E2] space-y-4">
+            <div className="w-10 h-10 rounded-2xl bg-[#F6F5F3] text-[#141414] flex items-center justify-center mx-auto">
               <KeyRound className="w-5 h-5" />
             </div>
             <div className="text-center">
-              <h3 className="font-bold text-sm text-[#201A17]">Definir Senha de Acesso</h3>
-              <p className="text-xs text-[#746A65] mt-1">
+              <h3 className="font-bold text-sm text-[#111111]">Definir Senha de Acesso</h3>
+              <p className="text-xs text-[#6B6B6B] mt-1">
                 {sellers.find(s => s.id === sellerToResetPassword)?.name}: informe a nova senha que este vendedor vai usar para fazer login.
               </p>
             </div>
@@ -237,12 +237,12 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
               placeholder="Nova senha (mín. 4 caracteres)"
               value={newPasswordValue}
               onChange={e => setNewPasswordValue(e.target.value)}
-              className="w-full text-xs bg-[#F8F6F4] border border-[#EAE5E2] rounded-xl px-3 py-2.5 text-[#201A17] text-center"
+              className="w-full text-xs bg-[#F6F5F3] border border-[#E7E5E2] rounded-xl px-3 py-2.5 text-[#111111] text-center"
             />
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => setSellerToResetPassword(null)}
-                className="flex-1 py-2 rounded-xl border border-[#EAE5E2] text-xs font-semibold text-[#746A65] hover:bg-[#F8F6F4]"
+                className="flex-1 py-2 rounded-xl border border-[#E7E5E2] text-xs font-semibold text-[#6B6B6B] hover:bg-[#F6F5F3]"
               >
                 Cancelar
               </button>
@@ -255,7 +255,7 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
                     setPasswordError(res.error || 'Não foi possível salvar a senha.');
                   }
                 }}
-                className="flex-1 py-2 rounded-xl bg-[#3B241C] text-white text-xs font-bold hover:bg-[#2E1A14]"
+                className="flex-1 py-2 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A]"
               >
                 Salvar Senha
               </button>
@@ -267,20 +267,20 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
       {/* Delete Seller Confirmation Dialog */}
       {sellerToDelete && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-[#EAE5E2] space-y-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-[#E7E5E2] space-y-4">
             <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mx-auto">
               <Trash2 className="w-5 h-5" />
             </div>
             <div className="text-center">
-              <h3 className="font-bold text-sm text-[#201A17]">Excluir Vendedor?</h3>
-              <p className="text-xs text-[#746A65] mt-1">
+              <h3 className="font-bold text-sm text-[#111111]">Excluir Vendedor?</h3>
+              <p className="text-xs text-[#6B6B6B] mt-1">
                 Tem certeza de que deseja remover este vendedor? Seu ponto de estoque associado também será desvinculado.
               </p>
             </div>
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setSellerToDelete(null)}
-                className="flex-1 py-2 rounded-xl border border-[#EAE5E2] text-xs font-semibold text-[#746A65] hover:bg-[#F8F6F4]"
+                className="flex-1 py-2 rounded-xl border border-[#E7E5E2] text-xs font-semibold text-[#6B6B6B] hover:bg-[#F6F5F3]"
               >
                 Cancelar
               </button>
