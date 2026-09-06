@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "Brownie Control",
+  "short_name": "BrownieCtrl",
+  "description": "Sistema de controle de vendas, estoque, comissões Pix e compras.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAF8F5",
+  "theme_color": "#261B16",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  /* Body/UI typeface actually wired up (previously loaded but never applied) */
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  /* Warm editorial serif for hero numbers & section titles — the signature of the brand */
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+
+  /* Brand tokens (cocoa palette) so screens stop repeating raw hex codes */
+  --color-cocoa-950: #1a120d;
+  --color-cocoa-900: #201a17;
+  --color-cocoa-800: #3b241c;
+  --color-cocoa-700: #4a2f24;
+  --color-cocoa-500: #746a65;
+  --color-cocoa-200: #eae5e2;
+  --color-cocoa-100: #f2ede9;
+  --color-cocoa-50: #fbf9f8;
+  --color-caramel-500: #c9822f;
+  --color-caramel-400: #dba24f;
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-feature-settings: 'ss01' 1;
+}
+
+/* Signature texture: a soft cocoa glow instead of flat white, used behind hero sections */
+.brand-hero-surface {
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(201, 130, 47, 0.16) 0%, rgba(201, 130, 47, 0) 55%),
+    radial-gradient(90% 120% at 0% 100%, rgba(59, 36, 28, 0.9) 0%, rgba(59, 36, 28, 0) 60%),
+    linear-gradient(135deg, #201a17 0%, #3b241c 55%, #4a2f24 100%);
+}
+
+::selection {
+  background: #eee7e3;
+  color: #3b241c;
+}

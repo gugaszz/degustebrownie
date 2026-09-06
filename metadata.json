@@ -1,0 +1,6 @@
+{
+  "name": "Brownie Control",
+  "description": "Sistema completo de gestão para controle de vendas, estoque central e de vendedores, fornecedores, compras, comissões, pagamentos Pix e indicadores financeiros.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
