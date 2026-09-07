@@ -39,14 +39,14 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
   onLogout,
   onOpenInstallModal
 }) => {
-  const { state, currentUser } = useStore();
+  const { state, currentUser, getCentralLocation } = useStore();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isOwner = currentUser.role === 'owner';
 
   // Alerts
   const pendingCommissionsCount = state.commissions.filter(c => c.status === 'pending').length;
   const centralStock = state.balances
-    .filter(b => b.location_id === 'loc-central')
+    .filter(b => b.location_id === getCentralLocation()?.id)
     .reduce((s, b) => s + b.quantity, 0);
   const hasAlerts = centralStock < 50 || pendingCommissionsCount > 0;
 

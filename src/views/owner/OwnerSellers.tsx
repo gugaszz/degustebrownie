@@ -247,8 +247,8 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
                 Cancelar
               </button>
               <button
-                onClick={() => {
-                  const res = setAccountPassword(sellerToResetPassword, newPasswordValue);
+                onClick={async () => {
+                  const res = await setAccountPassword(sellerToResetPassword, newPasswordValue);
                   if (res.success) {
                     setSellerToResetPassword(null);
                   } else {
@@ -285,8 +285,11 @@ export const OwnerSellers: React.FC<OwnerSellersProps> = ({
                 Cancelar
               </button>
               <button
-                onClick={() => {
-                  deleteSeller(sellerToDelete);
+                onClick={async () => {
+                  const res = await deleteSeller(sellerToDelete);
+                  if (!res.success) {
+                    console.error('Failed to delete seller', res.error);
+                  }
                   setSellerToDelete(null);
                 }}
                 className="flex-1 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700"

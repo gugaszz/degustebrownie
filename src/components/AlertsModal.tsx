@@ -18,12 +18,12 @@ interface AlertsModalProps {
 }
 
 export const AlertsModal: React.FC<AlertsModalProps> = ({ isOpen, onClose, onNavigateTab }) => {
-  const { state, getFlavorStock } = useStore();
+  const { state, getFlavorStock, getCentralLocation } = useStore();
 
   if (!isOpen) return null;
 
   const centralStock = state.balances
-    .filter(b => b.location_id === 'loc-central')
+    .filter(b => b.location_id === getCentralLocation()?.id)
     .reduce((s, b) => s + b.quantity, 0);
 
   // Expiring batches in next 5 days

@@ -18,10 +18,11 @@ export const NewSellerModal: React.FC<NewSellerModalProps> = ({ isOpen, onClose 
   const [commissionValue, setCommissionValue] = useState<number>(50);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setErrorMsg('O nome do vendedor é obrigatório.');
@@ -36,13 +37,15 @@ export const NewSellerModal: React.FC<NewSellerModalProps> = ({ isOpen, onClose 
       return;
     }
 
-    const res = createSeller({
+    setIsSubmitting(true);
+    const res = await createSeller({
       name,
       email,
       phone,
       password,
       commissionValue
     });
+    setIsSubmitting(false);
 
     if (res.success) {
       setSuccessMsg(`Vendedor ${name} cadastrado com sucesso! Compartilhe o e-mail e a senha com ele para o login.`);
@@ -175,9 +178,10 @@ export const NewSellerModal: React.FC<NewSellerModalProps> = ({ isOpen, onClose 
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A]"
+              disabled={isSubmitting}
+              className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A] disabled:opacity-50"
             >
-              Criar Vendedor
+              {isSubmitting ? 'Criando...' : 'Criar Vendedor'}
             </button>
           </div>
         </form>

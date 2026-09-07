@@ -1,4 +1,5 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
+import { supabase } from './supabase';
 import {
   Profile,
   Flavor,
@@ -18,45 +19,35 @@ import {
   AuditLog,
   OrganizationSettings,
   DateFilterOption,
-  Reservation
+  Reservation,
+  ReservationItem
 } from '../types';
 
-const STORAGE_KEY = 'brownie_control_prod_v2';
+// Real UUIDs now — every id in this app is a Postgres UUID primary key.
+export const generateId = () => crypto.randomUUID();
 
-// Helper to generate IDs
-export const generateId = () => Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+const DATE_FILTER_PREF_KEY = 'brownie_date_filter_pref_v1';
 
-// Helper for dates in Fortaleza timezone (ISO string)
-const today = new Date();
+const getTodayDateString = () => new Date().toISOString().split('T')[0];
+
 const formatDateOffset = (days: number) => {
-  const d = new Date(today);
+  const d = new Date();
   d.setDate(d.getDate() + days);
   return d.toISOString();
 };
-
-const getTodayDateString = () => today.toISOString().split('T')[0];
 
 // Webhook for Pushcut notifications on confirmed sales
 const triggerSaleWebhook = (sale: Sale) => {
   const webhookUrl = 'https://api.pushcut.io/dsxEjdBVqzQnkzl13vUZc/notifications/Vendas%20Aprovada!';
   const formattedVal = `R$ ${sale.total_amount.toFixed(2).replace('.', ',')}`;
-  // Título fixo, sem o valor. O valor da venda aparece só na legenda/corpo da notificação.
   const notificationTitle = 'Venda Aprovada';
   const messageText = `Valor: ${formattedVal}`;
 
-  // 1. Tenta POST com JSON
   fetch(webhookUrl, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      text: messageText,
-      title: notificationTitle,
-      input: sale.total_amount.toFixed(2)
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: messageText, title: notificationTitle, input: sale.total_amount.toFixed(2) })
   }).catch(() => {
-    // 2. Fallback via GET com query parameters e no-cors para garantia
     fetch(`${webhookUrl}?text=${encodeURIComponent(messageText)}&title=${encodeURIComponent(notificationTitle)}`, {
       method: 'GET',
       mode: 'no-cors'
@@ -90,206 +81,944 @@ export interface AppState {
   };
 }
 
-// Clean Production Initial State (Zero fake data)
-const createInitialState = (): AppState => {
-  const orgId = 'org-brownies-01';
-  const nowIso = new Date().toISOString();
+const EMPTY_PROFILE: Profile = {
+  id: '',
+  organization_id: '',
+  role: 'seller',
+  status: 'inactive',
+  name: '',
+  email: '',
+  phone: '',
+  created_at: ''
+};
 
-  const ownerProfile: Profile = {
-    id: 'usr-owner-01',
-    organization_id: orgId,
-    role: 'owner',
-    status: 'active',
-    name: 'Gustavo',
-    email: 'antunescosta.gustavo@gmail.com',
-    phone: '',
-    avatar_url: '',
-    password: '74282121',
-    created_at: nowIso
-  };
+const loadDateFilterPref = (): AppState['dateFilter'] => {
+  try {
+    const saved = localStorage.getItem(DATE_FILTER_PREF_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {
+    // ignore
+  }
+  const todayStr = getTodayDateString();
+  return { option: 'today', startDate: todayStr, endDate: todayStr };
+};
 
-  const product: Product = {
-    id: 'prod-01',
-    organization_id: orgId,
-    name: 'Brownie Gourmet',
-    description: 'Brownie tradicional artesanal',
-    active: true,
-    created_at: nowIso
-  };
+const saveDateFilterPref = (pref: AppState['dateFilter']) => {
+  try {
+    localStorage.setItem(DATE_FILTER_PREF_KEY, JSON.stringify(pref));
+  } catch {
+    // ignore
+  }
+};
 
-  const flavors: Flavor[] = [
-    { id: 'flv-nutella', organization_id: orgId, name: 'Nutella', active: true, sort_order: 1, created_at: nowIso },
-    { id: 'flv-ninho', organization_id: orgId, name: 'Ninho', active: true, sort_order: 2, created_at: nowIso },
-    { id: 'flv-brigadeiro', organization_id: orgId, name: 'Brigadeiro', active: true, sort_order: 3, created_at: nowIso },
-    { id: 'flv-tradicional', organization_id: orgId, name: 'Tradicional', active: true, sort_order: 4, created_at: nowIso }
-  ];
-
-  const pricingRules: PricingRule[] = [
-    { id: 'price-single', minimum_quantity: 1, maximum_quantity: 1, unit_price: 10.0, active: true },
-    { id: 'price-multi', minimum_quantity: 2, maximum_quantity: null, unit_price: 9.0, active: true }
-  ];
-
-  const locations: InventoryLocation[] = [
-    { id: 'loc-central', organization_id: orgId, type: 'central', name: 'Estoque Central', active: true, created_at: nowIso }
-  ];
-
-  // Zero inventory balance for initial flavors in central stock
-  const balances: InventoryBalance[] = flavors.map(f => ({
-    location_id: 'loc-central',
-    flavor_id: f.id,
-    quantity: 0
-  }));
-
-  const settings: OrganizationSettings = {
-    id: orgId,
-    name: 'Brownie Control',
+const emptyState = (): AppState => ({
+  settings: {
+    id: '',
+    name: '',
     currency: 'BRL',
     timezone: 'America/Fortaleza',
-    pix_key: '63633597000107',
+    pix_key: '',
     pix_key_type: 'cnpj',
-    pix_merchant_name: 'BROWNIE CONTROL',
-    pix_merchant_city: 'FORTALEZA',
+    pix_merchant_name: '',
+    pix_merchant_city: '',
     default_commission_type: 'percentage_of_gross_profit',
     default_commission_value: 50,
     default_purchase_cost: 4.0
-  };
+  },
+  currentUser: EMPTY_PROFILE,
+  profiles: [],
+  product: { id: '', organization_id: '', name: '', active: true, created_at: '' },
+  flavors: [],
+  pricingRules: [],
+  suppliers: [],
+  purchaseOrders: [],
+  locations: [],
+  batches: [],
+  movements: [],
+  balances: [],
+  sales: [],
+  commissions: [],
+  payouts: [],
+  expenses: [],
+  reservations: [],
+  auditLogs: [],
+  dateFilter: loadDateFilterPref()
+});
+
+// ==============================================================================
+// Data loading: fetch everything this signed-in user is allowed to see (RLS
+// does the filtering — a seller naturally gets back only their own rows where
+// that applies) and reshape it into the same AppState shape the whole app
+// already expects, enriching DB rows with the denormalized display fields
+// (flavor_name, seller_name, location_name...) that only live in this local
+// shape, not in the database itself.
+// ==============================================================================
+const loadOrgData = async (profile: Profile, dateFilter: AppState['dateFilter']): Promise<AppState> => {
+  const orgId = profile.organization_id;
+
+  const [
+    orgRes,
+    profilesRes,
+    productsRes,
+    flavorsRes,
+    pricingRulesRes,
+    suppliersRes,
+    locationsRes,
+    purchaseOrdersRes,
+    purchaseOrderItemsRes,
+    batchesRes,
+    movementsRes,
+    balancesRes,
+    salesRes,
+    saleItemsRes,
+    commissionsRes,
+    payoutsRes,
+    expensesRes,
+    reservationsRes,
+    reservationItemsRes,
+    auditLogsRes
+  ] = await Promise.all([
+    supabase.from('organizations').select('*').eq('id', orgId).single(),
+    supabase.from('profiles').select('*'),
+    supabase.from('products').select('*').eq('organization_id', orgId),
+    supabase.from('flavors').select('*').eq('organization_id', orgId).order('sort_order'),
+    supabase.from('pricing_rules').select('*').eq('organization_id', orgId),
+    supabase.from('suppliers').select('*').eq('organization_id', orgId),
+    supabase.from('inventory_locations').select('*').eq('organization_id', orgId),
+    supabase.from('purchase_orders').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }),
+    supabase.from('purchase_order_items').select('*').eq('organization_id', orgId),
+    supabase.from('inventory_batches').select('*').eq('organization_id', orgId),
+    supabase.from('inventory_movements').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }),
+    supabase.from('inventory_balances').select('*').eq('organization_id', orgId),
+    supabase.from('sales').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }),
+    supabase.from('sale_items').select('*').eq('organization_id', orgId),
+    supabase.from('commission_entries').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }),
+    supabase.from('commission_payouts').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }),
+    supabase.from('expenses').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }),
+    supabase.from('reservations').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }),
+    supabase.from('reservation_items').select('*').eq('organization_id', orgId),
+    supabase.from('audit_logs').select('*').eq('organization_id', orgId).order('created_at', { ascending: false }).limit(300)
+  ]);
+
+  const org = orgRes.data;
+  const profiles: Profile[] = (profilesRes.data || []).map((p: any) => ({
+    id: p.id,
+    organization_id: p.organization_id,
+    role: p.role,
+    status: p.status,
+    name: p.name,
+    email: p.email || '',
+    phone: p.phone || '',
+    avatar_url: p.avatar_url || '',
+    commission_type: p.commission_type,
+    commission_value: p.commission_value,
+    created_at: p.created_at
+  }));
+
+  const flavorMap = new Map<string, string>();
+  const flavors: Flavor[] = (flavorsRes.data || []).map((f: any) => {
+    flavorMap.set(f.id, f.name);
+    return f;
+  });
+
+  const profileMap = new Map<string, string>();
+  profiles.forEach(p => profileMap.set(p.id, p.name));
+
+  const locationMap = new Map<string, string>();
+  const locations: InventoryLocation[] = (locationsRes.data || []).map((l: any) => {
+    locationMap.set(l.id, l.name);
+    return l;
+  });
+
+  const supplierMap = new Map<string, string>();
+  const suppliers: Supplier[] = (suppliersRes.data || []).map((s: any) => {
+    supplierMap.set(s.id, s.name);
+    return s;
+  });
+
+  const poItemsByOrder = new Map<string, any[]>();
+  (purchaseOrderItemsRes.data || []).forEach((i: any) => {
+    const arr = poItemsByOrder.get(i.purchase_order_id) || [];
+    arr.push({ ...i, flavor_name: flavorMap.get(i.flavor_id) || 'Sabor' });
+    poItemsByOrder.set(i.purchase_order_id, arr);
+  });
+  const purchaseOrders: PurchaseOrder[] = (purchaseOrdersRes.data || []).map((o: any) => ({
+    ...o,
+    supplier_name: supplierMap.get(o.supplier_id) || 'Fornecedor',
+    items: poItemsByOrder.get(o.id) || []
+  }));
+
+  const batches: InventoryBatch[] = (batchesRes.data || []).map((b: any) => ({
+    ...b,
+    flavor_name: flavorMap.get(b.flavor_id) || 'Sabor'
+  }));
+
+  const movements: InventoryMovement[] = (movementsRes.data || []).map((m: any) => ({
+    ...m,
+    location_name: locationMap.get(m.location_id) || 'Local',
+    flavor_name: flavorMap.get(m.flavor_id) || 'Sabor'
+  }));
+
+  const balances: InventoryBalance[] = (balancesRes.data || []).map((b: any) => ({
+    location_id: b.location_id,
+    flavor_id: b.flavor_id,
+    quantity: b.quantity
+  }));
+
+  const saleItemsBySale = new Map<string, SaleItem[]>();
+  (saleItemsRes.data || []).forEach((i: any) => {
+    const arr = saleItemsBySale.get(i.sale_id) || [];
+    arr.push({
+      id: i.id,
+      flavor_id: i.flavor_id,
+      flavor_name: flavorMap.get(i.flavor_id) || 'Sabor',
+      quantity: i.quantity,
+      unit_sale_price: Number(i.unit_sale_price),
+      unit_cost: Number(i.unit_cost),
+      line_revenue: Number(i.line_revenue),
+      line_cost: Number(i.line_cost)
+    });
+    saleItemsBySale.set(i.sale_id, arr);
+  });
+  const sales: Sale[] = (salesRes.data || []).map((s: any) => ({
+    ...s,
+    total_amount: Number(s.total_amount),
+    total_cost: Number(s.total_cost),
+    gross_profit: Number(s.gross_profit),
+    seller_commission: Number(s.seller_commission),
+    owner_gross_result: Number(s.owner_gross_result),
+    subtotal: Number(s.subtotal),
+    discount_amount: Number(s.discount_amount || 0),
+    unit_price_applied: Number(s.unit_price_applied),
+    seller_name: profileMap.get(s.seller_id) || 'Vendedor',
+    items: saleItemsBySale.get(s.id) || []
+  }));
+
+  const commissions: CommissionEntry[] = (commissionsRes.data || []).map((c: any) => ({
+    ...c,
+    amount: Number(c.amount),
+    seller_name: profileMap.get(c.seller_id) || 'Vendedor'
+  }));
+
+  const payouts: CommissionPayout[] = (payoutsRes.data || []).map((p: any) => ({
+    ...p,
+    amount: Number(p.amount),
+    seller_name: profileMap.get(p.seller_id) || 'Vendedor',
+    entry_ids: []
+  }));
+
+  const expenses: Expense[] = (expensesRes.data || []).map((e: any) => ({
+    ...e,
+    amount: Number(e.amount)
+  }));
+
+  const reservationItemsByReservation = new Map<string, ReservationItem[]>();
+  (reservationItemsRes.data || []).forEach((i: any) => {
+    const arr = reservationItemsByReservation.get(i.reservation_id) || [];
+    arr.push({
+      id: i.id,
+      flavor_id: i.flavor_id,
+      flavor_name: flavorMap.get(i.flavor_id) || 'Sabor',
+      quantity: i.quantity
+    });
+    reservationItemsByReservation.set(i.reservation_id, arr);
+  });
+  const reservations: Reservation[] = (reservationsRes.data || []).map((r: any) => ({
+    ...r,
+    seller_name: profileMap.get(r.seller_id) || 'Vendedor',
+    items: reservationItemsByReservation.get(r.id) || []
+  }));
+
+  const auditLogs: AuditLog[] = auditLogsRes.data || [];
+
+  const settings: OrganizationSettings = org
+    ? {
+        id: org.id,
+        name: org.name,
+        currency: org.currency || 'BRL',
+        timezone: org.timezone || 'America/Fortaleza',
+        pix_key: org.pix_key || '',
+        pix_key_type: org.pix_key_type || 'cnpj',
+        pix_merchant_name: org.pix_merchant_name || 'BROWNIE CONTROL',
+        pix_merchant_city: org.pix_merchant_city || 'FORTALEZA',
+        default_commission_type: org.default_commission_type || 'percentage_of_gross_profit',
+        default_commission_value: Number(org.default_commission_value ?? 50),
+        default_purchase_cost: Number(org.default_purchase_cost ?? 4.0)
+      }
+    : emptyState().settings;
+
+  const product: Product = (productsRes.data || [])[0] || emptyState().product;
+
+  const currentUser = profiles.find(p => p.id === profile.id) || profile;
 
   return {
     settings,
-    currentUser: ownerProfile,
-    profiles: [ownerProfile],
+    currentUser,
+    profiles,
     product,
     flavors,
-    pricingRules,
-    suppliers: [],
-    purchaseOrders: [],
+    pricingRules: (pricingRulesRes.data || []).map((r: any) => ({ ...r, unit_price: Number(r.unit_price) })),
+    suppliers,
+    purchaseOrders,
     locations,
-    batches: [],
-    movements: [],
+    batches,
+    movements,
     balances,
-    sales: [],
-    commissions: [],
-    payouts: [],
-    expenses: [],
-    reservations: [],
-    auditLogs: [],
-    dateFilter: {
-      option: 'today',
-      startDate: getTodayDateString(),
-      endDate: getTodayDateString()
-    }
+    sales,
+    commissions,
+    payouts,
+    expenses,
+    reservations,
+    auditLogs,
+    dateFilter
   };
 };
 
-// Sellers who must always exist, keyed by a normalized identity match.
-// One-time migration flag: separate from the app's own persisted state so it survives
-// even if a future feature resets other slices of state. Guards the cleanup below so it
-// runs exactly once per browser and never re-triggers if the owner later creates a real
-// seller who happens to share a name with the old seed data.
-const OWNER_SETUP_MIGRATION_KEY = 'brownie_migrated_owner_only_v1';
+// ==============================================================================
+// Persistence: fired (not awaited by the caller) right after each optimistic
+// local state update, so every screen keeps its familiar instant-feedback feel
+// while the same change is written to the shared database in the background.
+// Errors are logged; the realtime subscription + periodic refetch keep every
+// device eventually consistent even if one write hiccups.
+// ==============================================================================
+const logFail = (label: string) => (err: unknown) => console.error(`[persist] ${label} failed`, err);
 
-/**
- * Ensures baseline data is consistent every time the app loads, whether starting from
- * a fresh install or from previously saved localStorage data. Runs as a pure migration
- * so it is safe to call on every load.
- */
-const ensureSeedFixes = (input: AppState): AppState => {
-  let state: AppState = {
-    ...input,
-    // Backfill fields that may not exist on data saved before this feature shipped
-    reservations: input.reservations || []
-  };
-
-  // Backfill the real Pix key (CNPJ) for sessions saved before it was configured,
-  // so every generated QR Code already points at the right bank account.
-  if (!state.settings.pix_key) {
-    state = {
-      ...state,
-      settings: {
-        ...state.settings,
-        pix_key: '63633597000107',
-        pix_key_type: 'cnpj'
-      }
-    };
-  }
-
-  // One-time cleanup: only the owner (Gustavo) creates accounts from now on, via
-  // Vendedores > Novo Vendedor. Older sessions may still have the auto-seeded/duplicated
-  // "João" test sellers from before that rule existed — remove them and their stock
-  // locations, and lock in Gustavo's real owner credentials, exactly once.
-  let alreadyMigrated = false;
-  try {
-    alreadyMigrated = localStorage.getItem(OWNER_SETUP_MIGRATION_KEY) === 'true';
-  } catch {
-    alreadyMigrated = false;
-  }
-
-  if (!alreadyMigrated) {
-    const sellerIdsToRemove = state.profiles.filter(p => p.role === 'seller').map(p => p.id);
-    const updatedOwner: Profile = {
-      ...(state.profiles.find(p => p.role === 'owner') as Profile),
-      name: 'Gustavo',
-      email: 'antunescosta.gustavo@gmail.com',
-      password: '74282121'
-    };
-
-    state = {
-      ...state,
-      profiles: state.profiles
-        .filter(p => p.role !== 'seller')
-        .map(p => (p.role === 'owner' ? updatedOwner : p)),
-      locations: state.locations.filter(l => !(l.seller_id && sellerIdsToRemove.includes(l.seller_id))),
-      balances: state.balances.filter(
-        b => !state.locations.find(l => l.id === b.location_id && l.seller_id && sellerIdsToRemove.includes(l.seller_id))
-      ),
-      // If the browser was mid-session as one of the removed sellers, land back on the
-      // owner account instead of pointing at a profile that no longer exists.
-      currentUser: sellerIdsToRemove.includes(state.currentUser?.id) ? updatedOwner : state.currentUser
-    };
-
+const persist = {
+  async sale(sale: Sale, items: SaleItem[], movements: InventoryMovement[], commission: CommissionEntry, audit: AuditLog) {
     try {
-      localStorage.setItem(OWNER_SETUP_MIGRATION_KEY, 'true');
-    } catch {
-      // ignore storage failures — worst case this migration runs again next load
+      await supabase.from('sales').insert({
+        id: sale.id,
+        organization_id: sale.organization_id,
+        seller_id: sale.seller_id,
+        status: sale.status,
+        payment_status: sale.payment_status,
+        payment_method: sale.payment_method,
+        total_quantity: sale.total_quantity,
+        unit_price_applied: sale.unit_price_applied,
+        subtotal: sale.subtotal,
+        discount_amount: sale.discount_amount,
+        total_amount: sale.total_amount,
+        total_cost: sale.total_cost,
+        gross_profit: sale.gross_profit,
+        seller_commission: sale.seller_commission,
+        owner_gross_result: sale.owner_gross_result,
+        pix_txid: sale.pix_txid,
+        confirmed_at: sale.confirmed_at,
+        created_at: sale.created_at
+      });
+      await supabase.from('sale_items').insert(
+        items.map(i => ({
+          id: i.id,
+          organization_id: sale.organization_id,
+          sale_id: sale.id,
+          flavor_id: i.flavor_id,
+          quantity: i.quantity,
+          unit_sale_price: i.unit_sale_price,
+          unit_cost: i.unit_cost,
+          line_revenue: i.line_revenue,
+          line_cost: i.line_cost
+        }))
+      );
+      for (const m of movements) {
+        await supabase.rpc('adjust_inventory_balance', {
+          p_organization_id: m.organization_id,
+          p_location_id: m.location_id,
+          p_flavor_id: m.flavor_id,
+          p_delta: m.quantity_delta
+        });
+        await supabase.from('inventory_movements').insert({
+          id: m.id,
+          organization_id: m.organization_id,
+          location_id: m.location_id,
+          flavor_id: m.flavor_id,
+          movement_type: m.movement_type,
+          quantity_delta: m.quantity_delta,
+          unit_cost: m.unit_cost,
+          reference_type: m.reference_type,
+          reference_id: m.reference_id,
+          notes: m.notes,
+          created_by: m.created_by,
+          created_at: m.created_at
+        });
+      }
+      await supabase.from('commission_entries').insert({
+        id: commission.id,
+        organization_id: commission.organization_id,
+        seller_id: commission.seller_id,
+        sale_id: commission.sale_id,
+        type: commission.type,
+        amount: commission.amount,
+        status: commission.status,
+        description: commission.description,
+        created_at: commission.created_at
+      });
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('sale')(e);
+    }
+  },
+
+  async cancelSale(saleId: string, movements: InventoryMovement[], audit: AuditLog) {
+    try {
+      await supabase.from('sales').update({ status: 'cancelled', cancelled_at: audit.created_at }).eq('id', saleId);
+      await supabase.from('commission_entries').update({ status: 'reversed' }).eq('sale_id', saleId);
+      for (const m of movements) {
+        await supabase.rpc('adjust_inventory_balance', {
+          p_organization_id: m.organization_id,
+          p_location_id: m.location_id,
+          p_flavor_id: m.flavor_id,
+          p_delta: m.quantity_delta
+        });
+        await supabase.from('inventory_movements').insert({
+          id: m.id,
+          organization_id: m.organization_id,
+          location_id: m.location_id,
+          flavor_id: m.flavor_id,
+          movement_type: m.movement_type,
+          quantity_delta: m.quantity_delta,
+          unit_cost: m.unit_cost,
+          reference_type: m.reference_type,
+          reference_id: m.reference_id,
+          notes: m.notes,
+          created_by: m.created_by,
+          created_at: m.created_at
+        });
+      }
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('cancelSale')(e);
+    }
+  },
+
+  async deleteSale(saleId: string, audit: AuditLog) {
+    try {
+      await supabase.from('commission_entries').delete().eq('sale_id', saleId);
+      await supabase.from('sale_items').delete().eq('sale_id', saleId);
+      await supabase.from('sales').delete().eq('id', saleId);
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('deleteSale')(e);
+    }
+  },
+
+  async movements(movements: InventoryMovement[], audit?: AuditLog) {
+    try {
+      for (const m of movements) {
+        await supabase.rpc('adjust_inventory_balance', {
+          p_organization_id: m.organization_id,
+          p_location_id: m.location_id,
+          p_flavor_id: m.flavor_id,
+          p_delta: m.quantity_delta
+        });
+        await supabase.from('inventory_movements').insert({
+          id: m.id,
+          organization_id: m.organization_id,
+          location_id: m.location_id,
+          flavor_id: m.flavor_id,
+          batch_id: m.batch_id,
+          movement_type: m.movement_type,
+          quantity_delta: m.quantity_delta,
+          unit_cost: m.unit_cost,
+          reference_type: m.reference_type,
+          reference_id: m.reference_id,
+          notes: m.notes,
+          created_by: m.created_by,
+          created_at: m.created_at
+        });
+      }
+      if (audit) await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('movements')(e);
+    }
+  },
+
+  async purchaseOrder(order: PurchaseOrder, audit: AuditLog) {
+    try {
+      await supabase.from('purchase_orders').insert({
+        id: order.id,
+        order_number: order.order_number,
+        organization_id: order.organization_id,
+        supplier_id: order.supplier_id,
+        status: order.status,
+        order_date: order.order_date,
+        expected_delivery_date: order.expected_delivery_date,
+        total_amount: order.total_amount,
+        notes: order.notes,
+        created_at: order.created_at
+      });
+      await supabase.from('purchase_order_items').insert(
+        order.items.map(i => ({
+          id: i.id,
+          organization_id: order.organization_id,
+          purchase_order_id: order.id,
+          flavor_id: i.flavor_id,
+          quantity_ordered: i.quantity_ordered,
+          quantity_received: i.quantity_received,
+          unit_cost: i.unit_cost,
+          total_cost: i.total_cost
+        }))
+      );
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('purchaseOrder')(e);
+    }
+  },
+
+  async receivePurchaseOrder(order: PurchaseOrder, batches: InventoryBatch[], movements: InventoryMovement[], audit: AuditLog) {
+    try {
+      await supabase
+        .from('purchase_orders')
+        .update({ status: 'received', received_at: audit.created_at })
+        .eq('id', order.id);
+      for (const item of order.items) {
+        await supabase
+          .from('purchase_order_items')
+          .update({ quantity_received: item.quantity_ordered })
+          .eq('purchase_order_id', order.id)
+          .eq('flavor_id', item.flavor_id);
+      }
+      await supabase.from('inventory_batches').insert(
+        batches.map(b => ({
+          id: b.id,
+          organization_id: b.organization_id,
+          flavor_id: b.flavor_id,
+          purchase_order_id: b.purchase_order_id,
+          supplier_id: b.supplier_id,
+          batch_reference: b.batch_reference,
+          unit_cost: b.unit_cost,
+          quantity_received: b.quantity_received,
+          quantity_remaining: b.quantity_remaining,
+          manufacturing_date: b.manufacturing_date,
+          expiration_date: b.expiration_date,
+          received_at: b.received_at
+        }))
+      );
+      for (const m of movements) {
+        await supabase.rpc('adjust_inventory_balance', {
+          p_organization_id: m.organization_id,
+          p_location_id: m.location_id,
+          p_flavor_id: m.flavor_id,
+          p_delta: m.quantity_delta
+        });
+        await supabase.from('inventory_movements').insert({
+          id: m.id,
+          organization_id: m.organization_id,
+          location_id: m.location_id,
+          flavor_id: m.flavor_id,
+          batch_id: m.batch_id,
+          movement_type: m.movement_type,
+          quantity_delta: m.quantity_delta,
+          unit_cost: m.unit_cost,
+          reference_type: m.reference_type,
+          reference_id: m.reference_id,
+          notes: m.notes,
+          created_by: m.created_by,
+          created_at: m.created_at
+        });
+      }
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('receivePurchaseOrder')(e);
+    }
+  },
+
+  async deletePurchaseOrder(orderId: string, batchIds: string[], audit: AuditLog) {
+    try {
+      if (batchIds.length) await supabase.from('inventory_batches').delete().in('id', batchIds);
+      await supabase.from('purchase_order_items').delete().eq('purchase_order_id', orderId);
+      await supabase.from('purchase_orders').delete().eq('id', orderId);
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('deletePurchaseOrder')(e);
+    }
+  },
+
+  async deleteBatch(batchId: string, movement: InventoryMovement, audit: AuditLog) {
+    try {
+      await supabase.rpc('adjust_inventory_balance', {
+        p_organization_id: movement.organization_id,
+        p_location_id: movement.location_id,
+        p_flavor_id: movement.flavor_id,
+        p_delta: movement.quantity_delta
+      });
+      await supabase.from('inventory_movements').insert({
+        id: movement.id,
+        organization_id: movement.organization_id,
+        location_id: movement.location_id,
+        flavor_id: movement.flavor_id,
+        batch_id: movement.batch_id,
+        movement_type: movement.movement_type,
+        quantity_delta: movement.quantity_delta,
+        unit_cost: movement.unit_cost,
+        notes: movement.notes,
+        created_by: movement.created_by,
+        created_at: movement.created_at
+      });
+      await supabase.from('inventory_batches').delete().eq('id', batchId);
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('deleteBatch')(e);
+    }
+  },
+
+  async createBatchManual(batch: InventoryBatch, movement: InventoryMovement, audit: AuditLog) {
+    try {
+      await supabase.from('inventory_batches').insert({
+        id: batch.id,
+        organization_id: batch.organization_id,
+        flavor_id: batch.flavor_id,
+        batch_reference: batch.batch_reference,
+        unit_cost: batch.unit_cost,
+        quantity_received: batch.quantity_received,
+        quantity_remaining: batch.quantity_remaining,
+        manufacturing_date: batch.manufacturing_date,
+        expiration_date: batch.expiration_date,
+        received_at: batch.received_at
+      });
+      await supabase.rpc('adjust_inventory_balance', {
+        p_organization_id: movement.organization_id,
+        p_location_id: movement.location_id,
+        p_flavor_id: movement.flavor_id,
+        p_delta: movement.quantity_delta
+      });
+      await supabase.from('inventory_movements').insert({
+        id: movement.id,
+        organization_id: movement.organization_id,
+        location_id: movement.location_id,
+        flavor_id: movement.flavor_id,
+        batch_id: movement.batch_id,
+        movement_type: movement.movement_type,
+        quantity_delta: movement.quantity_delta,
+        unit_cost: movement.unit_cost,
+        notes: movement.notes,
+        created_by: movement.created_by,
+        created_at: movement.created_at
+      });
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('createBatchManual')(e);
+    }
+  },
+
+  async payCommission(payout: CommissionPayout, entryIds: string[], audit: AuditLog) {
+    try {
+      await supabase.from('commission_payouts').insert({
+        id: payout.id,
+        payout_number: payout.payout_number,
+        organization_id: payout.organization_id,
+        seller_id: payout.seller_id,
+        period_start: payout.period_start,
+        period_end: payout.period_end,
+        amount: payout.amount,
+        status: payout.status,
+        paid_at: payout.paid_at,
+        payment_method: payout.payment_method,
+        notes: payout.notes,
+        created_by: payout.created_by,
+        created_at: payout.created_at
+      });
+      await supabase.from('commission_entries').update({ status: 'paid' }).in('id', entryIds);
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('payCommission')(e);
+    }
+  },
+
+  async expense(expense: Expense, audit: AuditLog) {
+    try {
+      await supabase.from('expenses').insert({
+        id: expense.id,
+        organization_id: expense.organization_id,
+        category: expense.category,
+        description: expense.description,
+        amount: expense.amount,
+        expense_date: expense.expense_date,
+        created_by: expense.created_by,
+        created_at: expense.created_at
+      });
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('expense')(e);
+    }
+  },
+
+  async deleteExpense(expenseId: string, audit: AuditLog) {
+    try {
+      await supabase.from('expenses').delete().eq('id', expenseId);
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('deleteExpense')(e);
+    }
+  },
+
+  async createSupplier(supplier: Supplier) {
+    try {
+      await supabase.from('suppliers').insert({
+        id: supplier.id,
+        organization_id: supplier.organization_id,
+        name: supplier.name,
+        contact_name: supplier.contact_name,
+        phone: supplier.phone,
+        email: supplier.email,
+        instagram: supplier.instagram,
+        document: supplier.document,
+        address: supplier.address,
+        notes: supplier.notes,
+        active: supplier.active
+      });
+    } catch (e) {
+      logFail('createSupplier')(e);
+    }
+  },
+
+  async deleteSupplier(supplierId: string, audit: AuditLog) {
+    try {
+      await supabase.from('suppliers').delete().eq('id', supplierId);
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('deleteSupplier')(e);
+    }
+  },
+
+  async createFlavor(flavor: Flavor, locationIds: string[]) {
+    try {
+      await supabase.from('flavors').insert({
+        id: flavor.id,
+        organization_id: flavor.organization_id,
+        name: flavor.name,
+        active: flavor.active,
+        sort_order: flavor.sort_order
+      });
+      if (locationIds.length) {
+        await supabase.from('inventory_balances').insert(
+          locationIds.map(locId => ({
+            organization_id: flavor.organization_id,
+            location_id: locId,
+            flavor_id: flavor.id,
+            quantity: 0
+          }))
+        );
+      }
+    } catch (e) {
+      logFail('createFlavor')(e);
+    }
+  },
+
+  async toggleFlavorActive(flavorId: string, active: boolean) {
+    try {
+      await supabase.from('flavors').update({ active }).eq('id', flavorId);
+    } catch (e) {
+      logFail('toggleFlavorActive')(e);
+    }
+  },
+
+  async deleteFlavor(flavorId: string, audit: AuditLog) {
+    try {
+      await supabase.from('inventory_balances').delete().eq('flavor_id', flavorId);
+      await supabase.from('flavors').delete().eq('id', flavorId);
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('deleteFlavor')(e);
+    }
+  },
+
+  async toggleSellerStatus(sellerId: string, status: 'active' | 'inactive') {
+    try {
+      await supabase.from('profiles').update({ status }).eq('id', sellerId);
+    } catch (e) {
+      logFail('toggleSellerStatus')(e);
+    }
+  },
+
+  async createReservation(reservation: Reservation, items: ReservationItem[], audit: AuditLog) {
+    try {
+      await supabase.from('reservations').insert({
+        id: reservation.id,
+        organization_id: reservation.organization_id,
+        seller_id: reservation.seller_id,
+        customer_name: reservation.customer_name,
+        sale_date: reservation.sale_date,
+        status: reservation.status,
+        notes: reservation.notes,
+        created_by: reservation.created_by,
+        created_at: reservation.created_at
+      });
+      await supabase.from('reservation_items').insert(
+        items.map(i => ({
+          id: i.id,
+          organization_id: reservation.organization_id,
+          reservation_id: reservation.id,
+          flavor_id: i.flavor_id,
+          quantity: i.quantity
+        }))
+      );
+      await supabase.from('audit_logs').insert(auditRow(audit));
+    } catch (e) {
+      logFail('createReservation')(e);
+    }
+  },
+
+  async updateReservation(id: string, patch: Record<string, any>) {
+    try {
+      await supabase.from('reservations').update(patch).eq('id', id);
+    } catch (e) {
+      logFail('updateReservation')(e);
+    }
+  },
+
+  async deleteReservation(id: string) {
+    try {
+      await supabase.from('reservation_items').delete().eq('reservation_id', id);
+      await supabase.from('reservations').delete().eq('id', id);
+    } catch (e) {
+      logFail('deleteReservation')(e);
+    }
+  },
+
+  async updateSettings(orgId: string, patch: Partial<OrganizationSettings>) {
+    try {
+      await supabase.from('organizations').update(patch).eq('id', orgId);
+    } catch (e) {
+      logFail('updateSettings')(e);
     }
   }
-
-  return state;
 };
 
+function auditRow(a: AuditLog) {
+  return {
+    id: a.id,
+    organization_id: a.organization_id,
+    user_id: a.user_id,
+    user_name: a.user_name,
+    action: a.action,
+    entity_type: a.entity_type,
+    entity_id: a.entity_id,
+    details: a.details,
+    created_at: a.created_at
+  };
+}
+
+const REALTIME_TABLES = [
+  'profiles', 'products', 'flavors', 'pricing_rules', 'suppliers', 'inventory_locations',
+  'purchase_orders', 'purchase_order_items', 'inventory_batches', 'inventory_movements',
+  'inventory_balances', 'sales', 'sale_items', 'commission_entries', 'commission_payouts',
+  'expenses', 'reservations', 'reservation_items', 'organizations'
+];
+
 /**
- * Custom React Hook for Store
+ * Custom React Hook for Store — backed by Supabase (real login, one shared
+ * database for every device and every user) instead of per-device localStorage.
  */
 function useStoreInternal() {
-  const [state, setState] = useState<AppState>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        return ensureSeedFixes(JSON.parse(saved));
-      }
-    } catch (e) {
-      console.error('Failed to load state from localStorage', e);
-    }
-    return ensureSeedFixes(createInitialState());
-  });
+  const [state, setState] = useState<AppState>(emptyState());
+  const [isLoading, setIsLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const refetchingRef = useRef(false);
 
-  // Sync to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) {
-      console.error('Failed to persist state', e);
+  const loadForUser = async (userId: string) => {
+    const { data: profileRow, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    if (error || !profileRow) {
+      console.error('No profile found for authenticated user — signing out', error);
+      await supabase.auth.signOut();
+      setState(emptyState());
+      setIsLoading(false);
+      return;
     }
-  }, [state]);
+    const full = await loadOrgData(profileRow as Profile, stateRef.current.dateFilter);
+    setState(full);
+    setIsLoading(false);
+  };
 
-  // Actions
-  const switchUser = (userId: string) => {
-    const user = state.profiles.find(p => p.id === userId);
-    if (user) {
-      setState(prev => ({ ...prev, currentUser: user }));
+  const refetch = async () => {
+    if (refetchingRef.current) return;
+    if (!stateRef.current.currentUser.id) return;
+    refetchingRef.current = true;
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) return;
+      const full = await loadOrgData({ ...stateRef.current.currentUser, id: authData.user.id }, stateRef.current.dateFilter);
+      setState(full);
+    } catch (e) {
+      console.error('refetch failed', e);
+    } finally {
+      refetchingRef.current = false;
     }
   };
 
+  // Auth bootstrap: check for an existing session, react to sign-in/out
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      if (data.session?.user) {
+        loadForUser(data.session.user.id);
+      } else {
+        setIsLoading(false);
+      }
+      setAuthChecked(true);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setState(emptyState());
+        setIsLoading(false);
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        setIsLoading(true);
+        loadForUser(session.user.id);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Realtime: any change from any device/user refreshes this session's view of
+  // the shared data, so the owner's Mac and a seller's phone stay in sync.
+  useEffect(() => {
+    const orgId = state.settings.id;
+    if (!orgId) return;
+
+    const channel = supabase.channel(`org-${orgId}-changes`);
+    REALTIME_TABLES.forEach(table => {
+      channel.on(
+        'postgres_changes' as any,
+        { event: '*', schema: 'public', table },
+        () => {
+          refetch();
+        }
+      );
+    });
+    channel.subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.settings.id]);
+
+  // ============================== Auth ==============================
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error || !data.user) {
+      return { success: false, error: 'E-mail ou senha incorretos.' };
+    }
+    setIsLoading(true);
+    await loadForUser(data.user.id);
+    return { success: true };
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setState(emptyState());
+  };
+
+  // ============================== Date filter (device-local UI preference) ==============================
   const setDateFilter = (option: DateFilterOption, customStart?: string, customEnd?: string) => {
     const todayStr = getTodayDateString();
     let startDate = todayStr;
@@ -315,17 +1044,11 @@ function useStoreInternal() {
       endDate = customEnd || todayStr;
     }
 
-    setState(prev => ({
-      ...prev,
-      dateFilter: {
-        option,
-        startDate,
-        endDate
-      }
-    }));
+    const pref = { option, startDate, endDate };
+    saveDateFilterPref(pref);
+    setState(prev => ({ ...prev, dateFilter: pref }));
   };
 
-  // Helper to filter items by current active date range
   const isDateInFilter = (isoDate: string) => {
     if (!isoDate) return false;
     const dateStr = isoDate.split('T')[0];
@@ -333,7 +1056,7 @@ function useStoreInternal() {
     return dateStr >= startDate && dateStr <= endDate;
   };
 
-  // Get seller location
+  // ============================== Read helpers ==============================
   const getSellerLocation = (sellerId: string): InventoryLocation | undefined => {
     return state.locations.find(l => l.type === 'seller' && l.seller_id === sellerId);
   };
@@ -342,37 +1065,30 @@ function useStoreInternal() {
     return state.locations.find(l => l.type === 'central') || state.locations[0];
   };
 
-  // Get current inventory balance for a location and flavor
   const getFlavorStock = (locationId: string, flavorId: string): number => {
     const bal = state.balances.find(b => b.location_id === locationId && b.flavor_id === flavorId);
     return bal ? bal.quantity : 0;
   };
 
-  // Get total stock for location
   const getTotalLocationStock = (locationId: string): number => {
-    return state.balances
-      .filter(b => b.location_id === locationId)
-      .reduce((sum, b) => sum + b.quantity, 0);
+    return state.balances.filter(b => b.location_id === locationId).reduce((sum, b) => sum + b.quantity, 0);
   };
 
-  // Transactional Sale Confirmation
+  // ============================== Sales ==============================
   const confirmSale = (params: {
     sellerId: string;
     items: { flavorId: string; quantity: number }[];
     applyDiscount?: boolean;
   }): { success: boolean; sale?: Sale; error?: string } => {
-    const seller = state.profiles.find(p => p.id === params.sellerId);
+    const seller = state.profiles.find(p => p.id === params.sellerId) || (params.sellerId === state.currentUser.id ? state.currentUser : undefined);
     if (!seller) return { success: false, error: 'Vendedor não encontrado' };
 
-    const sellerLocation = seller.role === 'owner' 
-      ? getCentralLocation() 
-      : (getSellerLocation(seller.id) || getCentralLocation());
+    const sellerLocation = seller.role === 'owner' ? getCentralLocation() : getSellerLocation(seller.id) || getCentralLocation();
     if (!sellerLocation) return { success: false, error: 'Local de estoque de origem não encontrado' };
 
     const totalQuantity = params.items.reduce((sum, item) => sum + item.quantity, 0);
     if (totalQuantity <= 0) return { success: false, error: 'A quantidade precisa ser maior que zero' };
 
-    // Stock verification
     for (const item of params.items) {
       const currentStock = getFlavorStock(sellerLocation.id, item.flavorId);
       const flavor = state.flavors.find(f => f.id === item.flavorId);
@@ -385,9 +1101,6 @@ function useStoreInternal() {
       }
     }
 
-    // Pricing Rule calculation
-    // 1 unit = 10, 2+ units = 9 each — unless the seller chooses not to apply
-    // the quantity discount for this specific sale (applyDiscount = false).
     const applyDiscount = params.applyDiscount !== false;
     const fullPrice = 10.0;
     const unitPrice = applyDiscount && totalQuantity >= 2 ? 9.0 : fullPrice;
@@ -398,24 +1111,20 @@ function useStoreInternal() {
     const totalCost = totalQuantity * unitCost;
     const grossProfit = totalAmount - totalCost;
 
-    // Commission calculation (default: 50% of gross profit for sellers, 0% for owner direct sale)
-    const commissionPercent = seller.role === 'owner' 
-      ? 0 
-      : (seller.commission_value ?? state.settings.default_commission_value ?? 50);
+    const commissionPercent = seller.role === 'owner' ? 0 : seller.commission_value ?? state.settings.default_commission_value ?? 50;
     const sellerCommission = grossProfit * (commissionPercent / 100);
     const ownerGrossResult = grossProfit - sellerCommission;
 
-    const saleId = 'sale-' + generateId();
+    const saleId = generateId();
     const nowIso = new Date().toISOString();
     const txid = 'BRW' + Date.now().toString().slice(-6);
 
     const saleItems: SaleItem[] = params.items.map(item => {
       const flavor = state.flavors.find(f => f.id === item.flavorId);
-      const fName = flavor ? flavor.name : 'Sabor';
       return {
-        id: 'si-' + generateId(),
+        id: generateId(),
         flavor_id: item.flavorId,
-        flavor_name: fName,
+        flavor_name: flavor?.name || 'Sabor',
         quantity: item.quantity,
         unit_sale_price: unitPrice,
         unit_cost: unitCost,
@@ -447,11 +1156,10 @@ function useStoreInternal() {
       items: saleItems
     };
 
-    // Inventory movements
     const newMovements: InventoryMovement[] = params.items.map(item => {
       const flavor = state.flavors.find(f => f.id === item.flavorId);
       return {
-        id: 'mov-' + generateId(),
+        id: generateId(),
         organization_id: state.settings.id,
         location_id: sellerLocation.id,
         location_name: sellerLocation.name,
@@ -468,9 +1176,8 @@ function useStoreInternal() {
       };
     });
 
-    // Commission ledger entry
     const newCommission: CommissionEntry = {
-      id: 'comm-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       seller_id: seller.id,
       seller_name: seller.name,
@@ -482,9 +1189,8 @@ function useStoreInternal() {
       created_at: nowIso
     };
 
-    // Audit log
     const audit: AuditLog = {
-      id: 'audit-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       user_id: seller.id,
       user_name: seller.name,
@@ -495,24 +1201,14 @@ function useStoreInternal() {
       created_at: nowIso
     };
 
-    // Atomic update of balances
     setState(prev => {
       const updatedBalances = [...prev.balances];
       for (const item of params.items) {
-        const index = updatedBalances.findIndex(
-          b => b.location_id === sellerLocation.id && b.flavor_id === item.flavorId
-        );
+        const index = updatedBalances.findIndex(b => b.location_id === sellerLocation.id && b.flavor_id === item.flavorId);
         if (index >= 0) {
-          updatedBalances[index] = {
-            ...updatedBalances[index],
-            quantity: Math.max(0, updatedBalances[index].quantity - item.quantity)
-          };
+          updatedBalances[index] = { ...updatedBalances[index], quantity: Math.max(0, updatedBalances[index].quantity - item.quantity) };
         } else {
-          updatedBalances.push({
-            location_id: sellerLocation.id,
-            flavor_id: item.flavorId,
-            quantity: 0
-          });
+          updatedBalances.push({ location_id: sellerLocation.id, flavor_id: item.flavorId, quantity: 0 });
         }
       }
 
@@ -526,13 +1222,12 @@ function useStoreInternal() {
       };
     });
 
-    // Disparar Webhook Pushcut informado o valor da venda
+    void persist.sale(newSale, saleItems, newMovements, newCommission, audit);
     triggerSaleWebhook(newSale);
 
     return { success: true, sale: newSale };
   };
 
-  // Cancel Sale
   const cancelSale = (saleId: string, reason: string): { success: boolean; error?: string } => {
     const sale = state.sales.find(s => s.id === saleId);
     if (!sale) return { success: false, error: 'Venda não encontrada' };
@@ -543,9 +1238,8 @@ function useStoreInternal() {
 
     const nowIso = new Date().toISOString();
 
-    // Reverse inventory movements
     const reversalMovements: InventoryMovement[] = sale.items.map(item => ({
-      id: 'mov-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       location_id: sellerLocation.id,
       location_name: sellerLocation.name,
@@ -561,9 +1255,8 @@ function useStoreInternal() {
       created_at: nowIso
     }));
 
-    // Audit log
     const audit: AuditLog = {
-      id: 'audit-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       user_id: state.currentUser.id,
       user_name: state.currentUser.name,
@@ -575,42 +1268,14 @@ function useStoreInternal() {
     };
 
     setState(prev => {
-      // Restore balances
       const updatedBalances = [...prev.balances];
       for (const item of sale.items) {
-        const index = updatedBalances.findIndex(
-          b => b.location_id === sellerLocation.id && b.flavor_id === item.flavor_id
-        );
-        if (index >= 0) {
-          updatedBalances[index] = {
-            ...updatedBalances[index],
-            quantity: updatedBalances[index].quantity + item.quantity
-          };
-        }
+        const index = updatedBalances.findIndex(b => b.location_id === sellerLocation.id && b.flavor_id === item.flavor_id);
+        if (index >= 0) updatedBalances[index] = { ...updatedBalances[index], quantity: updatedBalances[index].quantity + item.quantity };
       }
 
-      // Mark sale cancelled
-      const updatedSales = prev.sales.map(s => {
-        if (s.id === saleId) {
-          return {
-            ...s,
-            status: 'cancelled' as const,
-            cancelled_at: nowIso
-          };
-        }
-        return s;
-      });
-
-      // Reverse commission
-      const updatedCommissions = prev.commissions.map(c => {
-        if (c.sale_id === saleId) {
-          return {
-            ...c,
-            status: 'reversed' as const
-          };
-        }
-        return c;
-      });
+      const updatedSales = prev.sales.map(s => (s.id === saleId ? { ...s, status: 'cancelled' as const, cancelled_at: nowIso } : s));
+      const updatedCommissions = prev.commissions.map(c => (c.sale_id === saleId ? { ...c, status: 'reversed' as const } : c));
 
       return {
         ...prev,
@@ -622,33 +1287,53 @@ function useStoreInternal() {
       };
     });
 
+    void persist.cancelSale(saleId, reversalMovements, audit);
+
     return { success: true };
   };
 
-  // Stock Transfer: Central -> Seller ("Separar brownies para vendedor")
-  const transferToSeller = (params: {
-    sellerId: string;
-    items: { flavorId: string; quantity: number }[];
-    notes?: string;
-  }): { success: boolean; error?: string } => {
+  const deleteSale = (saleId: string): { success: boolean; error?: string } => {
+    const sale = state.sales.find(s => s.id === saleId);
+    if (!sale) return { success: false, error: 'Venda não encontrada' };
+
+    const audit: AuditLog = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      user_id: state.currentUser.id,
+      user_name: state.currentUser.name,
+      action: 'sale_deleted',
+      entity_type: 'sale',
+      entity_id: saleId,
+      details: `Registro de venda ${sale.pix_txid} removido do sistema`,
+      created_at: new Date().toISOString()
+    };
+
+    setState(prev => ({
+      ...prev,
+      sales: prev.sales.filter(s => s.id !== saleId),
+      commissions: prev.commissions.filter(c => c.sale_id !== saleId),
+      auditLogs: [audit, ...prev.auditLogs]
+    }));
+
+    void persist.deleteSale(saleId, audit);
+
+    return { success: true };
+  };
+
+  // ============================== Stock movements ==============================
+  const transferToSeller = (params: { sellerId: string; items: { flavorId: string; quantity: number }[]; notes?: string }): { success: boolean; error?: string } => {
     const centralLocation = getCentralLocation();
     const sellerLocation = getSellerLocation(params.sellerId);
     const seller = state.profiles.find(p => p.id === params.sellerId);
 
-    if (!seller || !sellerLocation) {
-      return { success: false, error: 'Vendedor ou estoque de destino não encontrado' };
-    }
+    if (!seller || !sellerLocation) return { success: false, error: 'Vendedor ou estoque de destino não encontrado' };
 
-    // Validate central availability
     for (const item of params.items) {
       if (item.quantity <= 0) continue;
       const centralStock = getFlavorStock(centralLocation.id, item.flavorId);
       const flavor = state.flavors.find(f => f.id === item.flavorId);
       if (centralStock < item.quantity) {
-        return {
-          success: false,
-          error: `Estoque central insuficiente para o sabor ${flavor?.name}. Disponível: ${centralStock}, solicitado: ${item.quantity}.`
-        };
+        return { success: false, error: `Estoque central insuficiente para o sabor ${flavor?.name}. Disponível: ${centralStock}, solicitado: ${item.quantity}.` };
       }
     }
 
@@ -657,13 +1342,11 @@ function useStoreInternal() {
     if (totalItems <= 0) return { success: false, error: 'Selecione pelo menos um brownie para transferir' };
 
     const newMovements: InventoryMovement[] = [];
-
     params.items.forEach(item => {
       if (item.quantity <= 0) return;
       const flavor = state.flavors.find(f => f.id === item.flavorId);
-      // Transfer out from central
       newMovements.push({
-        id: 'mov-' + generateId(),
+        id: generateId(),
         organization_id: state.settings.id,
         location_id: centralLocation.id,
         location_name: centralLocation.name,
@@ -675,9 +1358,8 @@ function useStoreInternal() {
         created_by: state.currentUser.name,
         created_at: nowIso
       });
-      // Transfer in to seller
       newMovements.push({
-        id: 'mov-' + generateId(),
+        id: generateId(),
         organization_id: state.settings.id,
         location_id: sellerLocation.id,
         location_name: sellerLocation.name,
@@ -692,7 +1374,7 @@ function useStoreInternal() {
     });
 
     const audit: AuditLog = {
-      id: 'audit-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       user_id: state.currentUser.id,
       user_name: state.currentUser.name,
@@ -706,70 +1388,36 @@ function useStoreInternal() {
       const updatedBalances = [...prev.balances];
       params.items.forEach(item => {
         if (item.quantity <= 0) return;
-        // decrease central
-        const centralIdx = updatedBalances.findIndex(
-          b => b.location_id === centralLocation.id && b.flavor_id === item.flavorId
-        );
-        if (centralIdx >= 0) {
-          updatedBalances[centralIdx] = {
-            ...updatedBalances[centralIdx],
-            quantity: Math.max(0, updatedBalances[centralIdx].quantity - item.quantity)
-          };
-        }
-        // increase seller
-        const sellerIdx = updatedBalances.findIndex(
-          b => b.location_id === sellerLocation.id && b.flavor_id === item.flavorId
-        );
+        const centralIdx = updatedBalances.findIndex(b => b.location_id === centralLocation.id && b.flavor_id === item.flavorId);
+        if (centralIdx >= 0) updatedBalances[centralIdx] = { ...updatedBalances[centralIdx], quantity: Math.max(0, updatedBalances[centralIdx].quantity - item.quantity) };
+        const sellerIdx = updatedBalances.findIndex(b => b.location_id === sellerLocation.id && b.flavor_id === item.flavorId);
         if (sellerIdx >= 0) {
-          updatedBalances[sellerIdx] = {
-            ...updatedBalances[sellerIdx],
-            quantity: updatedBalances[sellerIdx].quantity + item.quantity
-          };
+          updatedBalances[sellerIdx] = { ...updatedBalances[sellerIdx], quantity: updatedBalances[sellerIdx].quantity + item.quantity };
         } else {
-          updatedBalances.push({
-            location_id: sellerLocation.id,
-            flavor_id: item.flavorId,
-            quantity: item.quantity
-          });
+          updatedBalances.push({ location_id: sellerLocation.id, flavor_id: item.flavorId, quantity: item.quantity });
         }
       });
 
-      return {
-        ...prev,
-        balances: updatedBalances,
-        movements: [...newMovements, ...prev.movements],
-        auditLogs: [audit, ...prev.auditLogs]
-      };
+      return { ...prev, balances: updatedBalances, movements: [...newMovements, ...prev.movements], auditLogs: [audit, ...prev.auditLogs] };
     });
+
+    void persist.movements(newMovements, audit);
 
     return { success: true };
   };
 
-  // Stock Return: Seller -> Central
-  const returnToCentral = (params: {
-    sellerId: string;
-    items: { flavorId: string; quantity: number }[];
-    notes?: string;
-  }): { success: boolean; error?: string } => {
+  const returnToCentral = (params: { sellerId: string; items: { flavorId: string; quantity: number }[]; notes?: string }): { success: boolean; error?: string } => {
     const centralLocation = getCentralLocation();
     const sellerLocation = getSellerLocation(params.sellerId);
     const seller = state.profiles.find(p => p.id === params.sellerId);
 
-    if (!seller || !sellerLocation) {
-      return { success: false, error: 'Vendedor ou estoque de origem não encontrado' };
-    }
+    if (!seller || !sellerLocation) return { success: false, error: 'Vendedor ou estoque de origem não encontrado' };
 
-    // Validate seller availability
     for (const item of params.items) {
       if (item.quantity <= 0) continue;
       const sellerStock = getFlavorStock(sellerLocation.id, item.flavorId);
       const flavor = state.flavors.find(f => f.id === item.flavorId);
-      if (sellerStock < item.quantity) {
-        return {
-          success: false,
-          error: `Estoque insuficiente com o vendedor para o sabor ${flavor?.name}.`
-        };
-      }
+      if (sellerStock < item.quantity) return { success: false, error: `Estoque insuficiente com o vendedor para o sabor ${flavor?.name}.` };
     }
 
     const nowIso = new Date().toISOString();
@@ -777,12 +1425,11 @@ function useStoreInternal() {
     if (totalItems <= 0) return { success: false, error: 'Selecione pelo menos uma unidade para devolver' };
 
     const newMovements: InventoryMovement[] = [];
-
     params.items.forEach(item => {
       if (item.quantity <= 0) return;
       const flavor = state.flavors.find(f => f.id === item.flavorId);
       newMovements.push({
-        id: 'mov-' + generateId(),
+        id: generateId(),
         organization_id: state.settings.id,
         location_id: sellerLocation.id,
         location_name: sellerLocation.name,
@@ -795,7 +1442,7 @@ function useStoreInternal() {
         created_at: nowIso
       });
       newMovements.push({
-        id: 'mov-' + generateId(),
+        id: generateId(),
         organization_id: state.settings.id,
         location_id: centralLocation.id,
         location_name: centralLocation.name,
@@ -810,7 +1457,7 @@ function useStoreInternal() {
     });
 
     const audit: AuditLog = {
-      id: 'audit-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       user_id: state.currentUser.id,
       user_name: state.currentUser.name,
@@ -824,38 +1471,20 @@ function useStoreInternal() {
       const updatedBalances = [...prev.balances];
       params.items.forEach(item => {
         if (item.quantity <= 0) return;
-        const sellerIdx = updatedBalances.findIndex(
-          b => b.location_id === sellerLocation.id && b.flavor_id === item.flavorId
-        );
-        if (sellerIdx >= 0) {
-          updatedBalances[sellerIdx] = {
-            ...updatedBalances[sellerIdx],
-            quantity: Math.max(0, updatedBalances[sellerIdx].quantity - item.quantity)
-          };
-        }
-        const centralIdx = updatedBalances.findIndex(
-          b => b.location_id === centralLocation.id && b.flavor_id === item.flavorId
-        );
-        if (centralIdx >= 0) {
-          updatedBalances[centralIdx] = {
-            ...updatedBalances[centralIdx],
-            quantity: updatedBalances[centralIdx].quantity + item.quantity
-          };
-        }
+        const sellerIdx = updatedBalances.findIndex(b => b.location_id === sellerLocation.id && b.flavor_id === item.flavorId);
+        if (sellerIdx >= 0) updatedBalances[sellerIdx] = { ...updatedBalances[sellerIdx], quantity: Math.max(0, updatedBalances[sellerIdx].quantity - item.quantity) };
+        const centralIdx = updatedBalances.findIndex(b => b.location_id === centralLocation.id && b.flavor_id === item.flavorId);
+        if (centralIdx >= 0) updatedBalances[centralIdx] = { ...updatedBalances[centralIdx], quantity: updatedBalances[centralIdx].quantity + item.quantity };
       });
 
-      return {
-        ...prev,
-        balances: updatedBalances,
-        movements: [...newMovements, ...prev.movements],
-        auditLogs: [audit, ...prev.auditLogs]
-      };
+      return { ...prev, balances: updatedBalances, movements: [...newMovements, ...prev.movements], auditLogs: [audit, ...prev.auditLogs] };
     });
+
+    void persist.movements(newMovements, audit);
 
     return { success: true };
   };
 
-  // Register Inventory Loss
   const registerLoss = (params: {
     locationId: string;
     flavorId: string;
@@ -868,13 +1497,11 @@ function useStoreInternal() {
     if (!location || !flavor) return { success: false, error: 'Local ou sabor inválido' };
 
     const currentStock = getFlavorStock(location.id, flavor.id);
-    if (currentStock < params.quantity) {
-      return { success: false, error: `Estoque insuficiente no local selecionado. Atual: ${currentStock}` };
-    }
+    if (currentStock < params.quantity) return { success: false, error: `Estoque insuficiente no local selecionado. Atual: ${currentStock}` };
 
     const nowIso = new Date().toISOString();
     const movement: InventoryMovement = {
-      id: 'mov-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       location_id: location.id,
       location_name: location.name,
@@ -889,7 +1516,7 @@ function useStoreInternal() {
     };
 
     const audit: AuditLog = {
-      id: 'audit-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       user_id: state.currentUser.id,
       user_name: state.currentUser.name,
@@ -899,26 +1526,19 @@ function useStoreInternal() {
       created_at: nowIso
     };
 
-    setState(prev => {
-      const updatedBalances = prev.balances.map(b => {
-        if (b.location_id === location.id && b.flavor_id === flavor.id) {
-          return { ...b, quantity: Math.max(0, b.quantity - params.quantity) };
-        }
-        return b;
-      });
+    setState(prev => ({
+      ...prev,
+      balances: prev.balances.map(b => (b.location_id === location.id && b.flavor_id === flavor.id ? { ...b, quantity: Math.max(0, b.quantity - params.quantity) } : b)),
+      movements: [movement, ...prev.movements],
+      auditLogs: [audit, ...prev.auditLogs]
+    }));
 
-      return {
-        ...prev,
-        balances: updatedBalances,
-        movements: [movement, ...prev.movements],
-        auditLogs: [audit, ...prev.auditLogs]
-      };
-    });
+    void persist.movements([movement], audit);
 
     return { success: true };
   };
 
-  // Create Purchase Order
+  // ============================== Purchasing ==============================
   const createPurchaseOrder = (params: {
     supplierId: string;
     items: { flavorId: string; quantity: number; unitCost: number }[];
@@ -935,7 +1555,7 @@ function useStoreInternal() {
     const orderItems = params.items.map(item => {
       const flavor = state.flavors.find(f => f.id === item.flavorId);
       return {
-        id: 'poi-' + generateId(),
+        id: generateId(),
         flavor_id: item.flavorId,
         flavor_name: flavor?.name || 'Sabor',
         quantity_ordered: item.quantity,
@@ -946,7 +1566,7 @@ function useStoreInternal() {
     });
 
     const newOrder: PurchaseOrder = {
-      id: 'po-' + generateId(),
+      id: generateId(),
       order_number: orderNumber,
       organization_id: state.settings.id,
       supplier_id: supplier.id,
@@ -961,7 +1581,7 @@ function useStoreInternal() {
     };
 
     const audit: AuditLog = {
-      id: 'audit-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       user_id: state.currentUser.id,
       user_name: state.currentUser.name,
@@ -972,43 +1592,34 @@ function useStoreInternal() {
       created_at: nowIso
     };
 
-    setState(prev => ({
-      ...prev,
-      purchaseOrders: [newOrder, ...prev.purchaseOrders],
-      auditLogs: [audit, ...prev.auditLogs]
-    }));
+    setState(prev => ({ ...prev, purchaseOrders: [newOrder, ...prev.purchaseOrders], auditLogs: [audit, ...prev.auditLogs] }));
+
+    void persist.purchaseOrder(newOrder, audit);
 
     return { success: true };
   };
 
-  // Receive Purchase Order -> Adds units to Central Inventory + Creates Batches
-  const receivePurchaseOrder = (
-    orderId: string,
-    customExpiration?: string,
-    customBatchCode?: string
-  ): { success: boolean; error?: string } => {
+  const receivePurchaseOrder = (orderId: string, customExpiration?: string, customBatchCode?: string): { success: boolean; error?: string } => {
     const order = state.purchaseOrders.find(o => o.id === orderId);
     if (!order) return { success: false, error: 'Pedido de compra não encontrado' };
     if (order.status === 'received') return { success: false, error: 'Este pedido já foi recebido' };
 
     const centralLocation = getCentralLocation();
     const nowIso = new Date().toISOString();
-    const expirationDate = customExpiration || formatDateOffset(10); // Standard brownie shelf life
+    const expirationDate = customExpiration || formatDateOffset(10);
 
     const newBatches: InventoryBatch[] = [];
     const newMovements: InventoryMovement[] = [];
 
     order.items.forEach(item => {
       newBatches.push({
-        id: 'batch-' + generateId(),
+        id: generateId(),
         organization_id: state.settings.id,
         flavor_id: item.flavor_id,
         flavor_name: item.flavor_name,
         purchase_order_id: order.id,
         supplier_id: order.supplier_id,
-        batch_reference: customBatchCode
-          ? `${customBatchCode}-${item.flavor_name.slice(0, 3).toUpperCase()}`
-          : `LT-${order.order_number}-${item.flavor_name.slice(0, 3).toUpperCase()}`,
+        batch_reference: customBatchCode ? `${customBatchCode}-${item.flavor_name.slice(0, 3).toUpperCase()}` : `LT-${order.order_number}-${item.flavor_name.slice(0, 3).toUpperCase()}`,
         unit_cost: item.unit_cost,
         quantity_received: item.quantity_ordered,
         quantity_remaining: item.quantity_ordered,
@@ -1018,7 +1629,7 @@ function useStoreInternal() {
       });
 
       newMovements.push({
-        id: 'mov-' + generateId(),
+        id: generateId(),
         organization_id: state.settings.id,
         location_id: centralLocation.id,
         location_name: centralLocation.name,
@@ -1036,7 +1647,7 @@ function useStoreInternal() {
     });
 
     const audit: AuditLog = {
-      id: 'audit-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       user_id: state.currentUser.id,
       user_name: state.currentUser.name,
@@ -1047,43 +1658,24 @@ function useStoreInternal() {
       created_at: nowIso
     };
 
+    const updatedOrder: PurchaseOrder = {
+      ...order,
+      status: 'received',
+      received_at: nowIso,
+      items: order.items.map(i => ({ ...i, quantity_received: i.quantity_ordered }))
+    };
+
     setState(prev => {
-      // Update central balances
       const updatedBalances = [...prev.balances];
       order.items.forEach(item => {
-        const idx = updatedBalances.findIndex(
-          b => b.location_id === centralLocation.id && b.flavor_id === item.flavor_id
-        );
-        if (idx >= 0) {
-          updatedBalances[idx] = {
-            ...updatedBalances[idx],
-            quantity: updatedBalances[idx].quantity + item.quantity_ordered
-          };
-        } else {
-          updatedBalances.push({
-            location_id: centralLocation.id,
-            flavor_id: item.flavor_id,
-            quantity: item.quantity_ordered
-          });
-        }
-      });
-
-      // Update purchase order status
-      const updatedOrders = prev.purchaseOrders.map(o => {
-        if (o.id === orderId) {
-          return {
-            ...o,
-            status: 'received' as const,
-            received_at: nowIso,
-            items: o.items.map(i => ({ ...i, quantity_received: i.quantity_ordered }))
-          };
-        }
-        return o;
+        const idx = updatedBalances.findIndex(b => b.location_id === centralLocation.id && b.flavor_id === item.flavor_id);
+        if (idx >= 0) updatedBalances[idx] = { ...updatedBalances[idx], quantity: updatedBalances[idx].quantity + item.quantity_ordered };
+        else updatedBalances.push({ location_id: centralLocation.id, flavor_id: item.flavor_id, quantity: item.quantity_ordered });
       });
 
       return {
         ...prev,
-        purchaseOrders: updatedOrders,
+        purchaseOrders: prev.purchaseOrders.map(o => (o.id === orderId ? updatedOrder : o)),
         batches: [...newBatches, ...prev.batches],
         movements: [...newMovements, ...prev.movements],
         balances: updatedBalances,
@@ -1091,407 +1683,39 @@ function useStoreInternal() {
       };
     });
 
-    return { success: true };
-  };
-
-  // Commission Payout (Weekly or on demand)
-  const payCommission = (params: {
-    sellerId: string;
-    entryIds: string[];
-    paymentMethod: string;
-    notes?: string;
-  }): { success: boolean; error?: string } => {
-    const seller = state.profiles.find(p => p.id === params.sellerId);
-    if (!seller) return { success: false, error: 'Vendedor não encontrado' };
-
-    const selectedEntries = state.commissions.filter(c => params.entryIds.includes(c.id));
-    if (selectedEntries.length === 0) return { success: false, error: 'Nenhuma comissão pendente selecionada' };
-
-    const totalAmount = selectedEntries.reduce((sum, e) => sum + e.amount, 0);
-    const nowIso = new Date().toISOString();
-    const payoutNumber = `PAG-${(state.payouts.length + 1).toString().padStart(3, '0')}`;
-
-    const newPayout: CommissionPayout = {
-      id: 'payout-' + generateId(),
-      payout_number: payoutNumber,
-      organization_id: state.settings.id,
-      seller_id: seller.id,
-      seller_name: seller.name,
-      period_start: selectedEntries[selectedEntries.length - 1]?.created_at.split('T')[0] || nowIso.split('T')[0],
-      period_end: nowIso.split('T')[0],
-      amount: totalAmount,
-      status: 'paid',
-      paid_at: nowIso,
-      payment_method: params.paymentMethod || 'Pix',
-      notes: params.notes,
-      entry_ids: params.entryIds,
-      created_by: state.currentUser.name,
-      created_at: nowIso
-    };
-
-    const audit: AuditLog = {
-      id: 'audit-' + generateId(),
-      organization_id: state.settings.id,
-      user_id: state.currentUser.id,
-      user_name: state.currentUser.name,
-      action: 'commission_paid',
-      entity_type: 'commission_payout',
-      entity_id: newPayout.id,
-      details: `Pagamento de comissão ${payoutNumber} para ${seller.name}. Valor: R$ ${totalAmount.toFixed(2)}`,
-      created_at: nowIso
-    };
-
-    setState(prev => ({
-      ...prev,
-      payouts: [newPayout, ...prev.payouts],
-      commissions: prev.commissions.map(c => {
-        if (params.entryIds.includes(c.id)) {
-          return { ...c, status: 'paid' as const };
-        }
-        return c;
-      }),
-      auditLogs: [audit, ...prev.auditLogs]
-    }));
+    void persist.receivePurchaseOrder(updatedOrder, newBatches, newMovements, audit);
 
     return { success: true };
   };
 
-  // Add Expense
-  const addExpense = (params: {
-    category: Expense['category'];
-    description: string;
-    amount: number;
-    expenseDate?: string;
-  }): { success: boolean } => {
-    const nowIso = new Date().toISOString();
-    const newExpense: Expense = {
-      id: 'exp-' + generateId(),
-      organization_id: state.settings.id,
-      category: params.category,
-      description: params.description,
-      amount: params.amount,
-      expense_date: params.expenseDate || nowIso.split('T')[0],
-      created_by: state.currentUser.name,
-      created_at: nowIso
-    };
-
-    const audit: AuditLog = {
-      id: 'audit-' + generateId(),
-      organization_id: state.settings.id,
-      user_id: state.currentUser.id,
-      user_name: state.currentUser.name,
-      action: 'expense_created',
-      entity_type: 'expense',
-      entity_id: newExpense.id,
-      details: `Despesa registrada: ${params.description} - R$ ${params.amount.toFixed(2)}`,
-      created_at: nowIso
-    };
-
-    setState(prev => ({
-      ...prev,
-      expenses: [newExpense, ...prev.expenses],
-      auditLogs: [audit, ...prev.auditLogs]
-    }));
-
-    return { success: true };
-  };
-
-  // Create Seller
-  const createSeller = (params: {
-    name: string;
-    email: string;
-    phone: string;
-    password: string;
-    commissionType?: 'percentage_of_gross_profit' | 'fixed_per_unit';
-    commissionValue?: number;
-  }): { success: boolean; seller?: Profile; error?: string } => {
-    if (!params.name.trim()) return { success: false, error: 'O nome é obrigatório' };
-    if (!params.email.trim()) return { success: false, error: 'O e-mail de acesso é obrigatório' };
-    if (!params.password || params.password.trim().length < 4) {
-      return { success: false, error: 'Defina uma senha de acesso com pelo menos 4 caracteres' };
-    }
-
-    const normalizedEmail = params.email.trim().toLowerCase();
-    if (state.profiles.some(p => p.email && p.email.trim().toLowerCase() === normalizedEmail)) {
-      return { success: false, error: 'Já existe uma conta cadastrada com este e-mail' };
-    }
-
-    const sellerId = 'usr-seller-' + generateId();
-    const locationId = 'loc-seller-' + generateId();
-    const nowIso = new Date().toISOString();
-
-    const newSeller: Profile = {
-      id: sellerId,
-      organization_id: state.settings.id,
-      role: 'seller',
-      status: 'active',
-      name: params.name.trim(),
-      email: params.email.trim(),
-      phone: params.phone.trim(),
-      password: params.password.trim(),
-      commission_type: params.commissionType || 'percentage_of_gross_profit',
-      commission_value: params.commissionValue || 50,
-      created_at: nowIso
-    };
-
-    const newLocation: InventoryLocation = {
-      id: locationId,
-      organization_id: state.settings.id,
-      type: 'seller',
-      name: `Estoque - ${params.name.trim()}`,
-      seller_id: sellerId,
-      active: true,
-      created_at: nowIso
-    };
-
-    // Initial 0 balances for all flavors
-    const initialBalances: InventoryBalance[] = state.flavors.map(f => ({
-      location_id: locationId,
-      flavor_id: f.id,
-      quantity: 0
-    }));
-
-    const audit: AuditLog = {
-      id: 'audit-' + generateId(),
-      organization_id: state.settings.id,
-      user_id: state.currentUser.id,
-      user_name: state.currentUser.name,
-      action: 'seller_created',
-      entity_type: 'seller',
-      entity_id: sellerId,
-      details: `Novo vendedor cadastrado: ${params.name}`,
-      created_at: nowIso
-    };
-
-    setState(prev => ({
-      ...prev,
-      profiles: [...prev.profiles, newSeller],
-      locations: [...prev.locations, newLocation],
-      balances: [...prev.balances, ...initialBalances],
-      auditLogs: [audit, ...prev.auditLogs]
-    }));
-
-    return { success: true, seller: newSeller };
-  };
-
-  // Toggle Seller status
-  const toggleSellerStatus = (sellerId: string) => {
-    setState(prev => ({
-      ...prev,
-      profiles: prev.profiles.map(p => {
-        if (p.id === sellerId) {
-          const newStatus = p.status === 'active' ? 'inactive' : 'active';
-          return { ...p, status: newStatus };
-        }
-        return p;
-      })
-    }));
-  };
-
-  // Owner-only: (re)define a login password for any account (seller or self)
-  const setAccountPassword = (userId: string, newPassword: string): { success: boolean; error?: string } => {
-    if (!newPassword || newPassword.trim().length < 4) {
-      return { success: false, error: 'A senha precisa ter pelo menos 4 caracteres' };
-    }
-    setState(prev => ({
-      ...prev,
-      profiles: prev.profiles.map(p => (p.id === userId ? { ...p, password: newPassword.trim() } : p))
-    }));
-    return { success: true };
-  };
-
-  // Create Supplier
-  const createSupplier = (params: Omit<Supplier, 'id' | 'organization_id' | 'created_at' | 'active'>) => {
-    const newSupplier: Supplier = {
-      ...params,
-      id: 'sup-' + generateId(),
-      organization_id: state.settings.id,
-      active: true,
-      created_at: new Date().toISOString()
-    };
-
-    setState(prev => ({
-      ...prev,
-      suppliers: [newSupplier, ...prev.suppliers]
-    }));
-  };
-
-  // Create Flavor
-  const createFlavor = (name: string) => {
-    if (!name.trim()) return;
-    const newFlavor: Flavor = {
-      id: 'flv-' + generateId(),
-      organization_id: state.settings.id,
-      name: name.trim(),
-      active: true,
-      sort_order: state.flavors.length + 1,
-      created_at: new Date().toISOString()
-    };
-
-    setState(prev => {
-      // Add balance record for each location
-      const newBalances = prev.locations.map(loc => ({
-        location_id: loc.id,
-        flavor_id: newFlavor.id,
-        quantity: 0
-      }));
-
-      return {
-        ...prev,
-        flavors: [...prev.flavors, newFlavor],
-        balances: [...prev.balances, ...newBalances]
-      };
-    });
-  };
-
-  // Toggle Flavor Active
-  const toggleFlavorActive = (flavorId: string) => {
-    setState(prev => ({
-      ...prev,
-      flavors: prev.flavors.map(f => (f.id === flavorId ? { ...f, active: !f.active } : f))
-    }));
-  };
-
-  // Delete Flavor
-  const deleteFlavor = (flavorId: string): { success: boolean; error?: string } => {
-    const flavor = state.flavors.find(f => f.id === flavorId);
-    if (!flavor) return { success: false, error: 'Sabor não encontrado' };
-
-    setState(prev => ({
-      ...prev,
-      flavors: prev.flavors.filter(f => f.id !== flavorId),
-      balances: prev.balances.filter(b => b.flavor_id !== flavorId),
-      auditLogs: [
-        {
-          id: 'audit-' + generateId(),
-          organization_id: state.settings.id,
-          user_id: state.currentUser.id,
-          user_name: state.currentUser.name,
-          action: 'flavor_deleted',
-          entity_type: 'flavor',
-          entity_id: flavorId,
-          details: `Sabor "${flavor.name}" removido do catálogo`,
-          created_at: new Date().toISOString()
-        },
-        ...prev.auditLogs
-      ]
-    }));
-
-    return { success: true };
-  };
-
-  // Delete Seller
-  const deleteSeller = (sellerId: string): { success: boolean; error?: string } => {
-    const seller = state.profiles.find(p => p.id === sellerId);
-    if (!seller) return { success: false, error: 'Vendedor não encontrado' };
-    if (seller.role === 'owner') return { success: false, error: 'Não é permitido excluir o administrador' };
-
-    const sellerLoc = state.locations.find(l => l.seller_id === sellerId);
-
-    setState(prev => ({
-      ...prev,
-      profiles: prev.profiles.filter(p => p.id !== sellerId),
-      locations: sellerLoc ? prev.locations.filter(l => l.id !== sellerLoc.id) : prev.locations,
-      balances: sellerLoc ? prev.balances.filter(b => b.location_id !== sellerLoc.id) : prev.balances,
-      auditLogs: [
-        {
-          id: 'audit-' + generateId(),
-          organization_id: state.settings.id,
-          user_id: state.currentUser.id,
-          user_name: state.currentUser.name,
-          action: 'seller_deleted',
-          entity_type: 'seller',
-          entity_id: sellerId,
-          details: `Vendedor ${seller.name} excluído do sistema`,
-          created_at: new Date().toISOString()
-        },
-        ...prev.auditLogs
-      ]
-    }));
-
-    return { success: true };
-  };
-
-  // Delete Supplier
-  const deleteSupplier = (supplierId: string): { success: boolean; error?: string } => {
-    const supplier = state.suppliers.find(s => s.id === supplierId);
-    if (!supplier) return { success: false, error: 'Fornecedor não encontrado' };
-
-    setState(prev => ({
-      ...prev,
-      suppliers: prev.suppliers.filter(s => s.id !== supplierId),
-      auditLogs: [
-        {
-          id: 'audit-' + generateId(),
-          organization_id: state.settings.id,
-          user_id: state.currentUser.id,
-          user_name: state.currentUser.name,
-          action: 'supplier_deleted',
-          entity_type: 'supplier',
-          entity_id: supplierId,
-          details: `Fornecedor ${supplier.name} removido`,
-          created_at: new Date().toISOString()
-        },
-        ...prev.auditLogs
-      ]
-    }));
-
-    return { success: true };
-  };
-
-  // Delete Expense
-  const deleteExpense = (expenseId: string): { success: boolean; error?: string } => {
-    const expense = state.expenses.find(e => e.id === expenseId);
-    if (!expense) return { success: false, error: 'Despesa não encontrada' };
-
-    setState(prev => ({
-      ...prev,
-      expenses: prev.expenses.filter(e => e.id !== expenseId),
-      auditLogs: [
-        {
-          id: 'audit-' + generateId(),
-          organization_id: state.settings.id,
-          user_id: state.currentUser.id,
-          user_name: state.currentUser.name,
-          action: 'expense_deleted',
-          entity_type: 'expense',
-          entity_id: expenseId,
-          details: `Despesa "${expense.description}" de R$ ${expense.amount.toFixed(2)} excluída`,
-          created_at: new Date().toISOString()
-        },
-        ...prev.auditLogs
-      ]
-    }));
-
-    return { success: true };
-  };
-
-  // Delete Purchase Order
   const deletePurchaseOrder = (orderId: string): { success: boolean; error?: string } => {
     const order = state.purchaseOrders.find(o => o.id === orderId);
     if (!order) return { success: false, error: 'Pedido de compra não encontrado' };
 
     const centralLocation = getCentralLocation();
+    const orderBatches = state.batches.filter(b => b.purchase_order_id === orderId);
+
+    const audit: AuditLog = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      user_id: state.currentUser.id,
+      user_name: state.currentUser.name,
+      action: 'purchase_order_deleted',
+      entity_type: 'purchase_order',
+      entity_id: orderId,
+      details: `Pedido de compra ${order.order_number} removido`,
+      created_at: new Date().toISOString()
+    };
 
     setState(prev => {
       let updatedBatches = [...prev.batches];
       let updatedBalances = [...prev.balances];
 
-      // If received, remove associated batches and reverse central stock balance
       if (order.status === 'received' && centralLocation) {
-        const orderBatches = prev.batches.filter(b => b.purchase_order_id === orderId);
         updatedBatches = prev.batches.filter(b => b.purchase_order_id !== orderId);
-
         orderBatches.forEach(b => {
-          const balIdx = updatedBalances.findIndex(
-            x => x.location_id === centralLocation.id && x.flavor_id === b.flavor_id
-          );
-          if (balIdx >= 0) {
-            updatedBalances[balIdx] = {
-              ...updatedBalances[balIdx],
-              quantity: Math.max(0, updatedBalances[balIdx].quantity - b.quantity_remaining)
-            };
-          }
+          const balIdx = updatedBalances.findIndex(x => x.location_id === centralLocation.id && x.flavor_id === b.flavor_id);
+          if (balIdx >= 0) updatedBalances[balIdx] = { ...updatedBalances[balIdx], quantity: Math.max(0, updatedBalances[balIdx].quantity - b.quantity_remaining) };
         });
       }
 
@@ -1500,27 +1724,15 @@ function useStoreInternal() {
         purchaseOrders: prev.purchaseOrders.filter(o => o.id !== orderId),
         batches: updatedBatches,
         balances: updatedBalances,
-        auditLogs: [
-          {
-            id: 'audit-' + generateId(),
-            organization_id: state.settings.id,
-            user_id: state.currentUser.id,
-            user_name: state.currentUser.name,
-            action: 'purchase_order_deleted',
-            entity_type: 'purchase_order',
-            entity_id: orderId,
-            details: `Pedido de compra ${order.order_number} removido`,
-            created_at: new Date().toISOString()
-          },
-          ...prev.auditLogs
-        ]
+        auditLogs: [audit, ...prev.auditLogs]
       };
     });
+
+    void persist.deletePurchaseOrder(orderId, orderBatches.map(b => b.id), audit);
 
     return { success: true };
   };
 
-  // Delete / Discard Batch
   const deleteBatch = (batchId: string, reason = 'Descarte / Ajuste'): { success: boolean; error?: string } => {
     const batch = state.batches.find(b => b.id === batchId);
     if (!batch) return { success: false, error: 'Lote não encontrado' };
@@ -1529,7 +1741,7 @@ function useStoreInternal() {
     const nowIso = new Date().toISOString();
 
     const movement: InventoryMovement = {
-      id: 'mov-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       location_id: centralLocation.id,
       location_name: centralLocation.name,
@@ -1544,43 +1756,31 @@ function useStoreInternal() {
       created_at: nowIso
     };
 
-    setState(prev => {
-      const updatedBalances = prev.balances.map(b => {
-        if (b.location_id === centralLocation.id && b.flavor_id === batch.flavor_id) {
-          return {
-            ...b,
-            quantity: Math.max(0, b.quantity - batch.quantity_remaining)
-          };
-        }
-        return b;
-      });
+    const audit: AuditLog = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      user_id: state.currentUser.id,
+      user_name: state.currentUser.name,
+      action: 'batch_deleted',
+      entity_type: 'inventory_batch',
+      entity_id: batchId,
+      details: `Lote ${batch.batch_reference} (${batch.quantity_remaining} un de ${batch.flavor_name}) removido. Motivo: ${reason}`,
+      created_at: nowIso
+    };
 
-      return {
-        ...prev,
-        batches: prev.batches.filter(b => b.id !== batchId),
-        balances: updatedBalances,
-        movements: [movement, ...prev.movements],
-        auditLogs: [
-          {
-            id: 'audit-' + generateId(),
-            organization_id: state.settings.id,
-            user_id: state.currentUser.id,
-            user_name: state.currentUser.name,
-            action: 'batch_deleted',
-            entity_type: 'inventory_batch',
-            entity_id: batchId,
-            details: `Lote ${batch.batch_reference} (${batch.quantity_remaining} un de ${batch.flavor_name}) removido. Motivo: ${reason}`,
-            created_at: nowIso
-          },
-          ...prev.auditLogs
-        ]
-      };
-    });
+    setState(prev => ({
+      ...prev,
+      batches: prev.batches.filter(b => b.id !== batchId),
+      balances: prev.balances.map(b => (b.location_id === centralLocation.id && b.flavor_id === batch.flavor_id ? { ...b, quantity: Math.max(0, b.quantity - batch.quantity_remaining) } : b)),
+      movements: [movement, ...prev.movements],
+      auditLogs: [audit, ...prev.auditLogs]
+    }));
+
+    void persist.deleteBatch(batchId, movement, audit);
 
     return { success: true };
   };
 
-  // Manual Batch Entry (ex: Produção Própria / Entrada Avulsa de Brownies)
   const createBatchManual = (params: {
     flavorId: string;
     quantity: number;
@@ -1599,7 +1799,7 @@ function useStoreInternal() {
     const refCode = params.batchRef?.trim() || `LT-${Date.now().toString(36).toUpperCase()}-${flavor.name.slice(0, 3).toUpperCase()}`;
 
     const newBatch: InventoryBatch = {
-      id: 'batch-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       flavor_id: flavor.id,
       flavor_name: flavor.name,
@@ -1613,7 +1813,7 @@ function useStoreInternal() {
     };
 
     const movement: InventoryMovement = {
-      id: 'mov-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       location_id: centralLocation.id,
       location_name: centralLocation.name,
@@ -1628,85 +1828,313 @@ function useStoreInternal() {
       created_at: nowIso
     };
 
+    const audit: AuditLog = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      user_id: state.currentUser.id,
+      user_name: state.currentUser.name,
+      action: 'batch_created_manual',
+      entity_type: 'inventory_batch',
+      entity_id: newBatch.id,
+      details: `Lote avulso ${refCode} com ${params.quantity} brownies de ${flavor.name} adicionado ao estoque central`,
+      created_at: nowIso
+    };
+
     setState(prev => {
       const updatedBalances = [...prev.balances];
       const idx = updatedBalances.findIndex(b => b.location_id === centralLocation.id && b.flavor_id === flavor.id);
-      if (idx >= 0) {
-        updatedBalances[idx] = {
-          ...updatedBalances[idx],
-          quantity: updatedBalances[idx].quantity + params.quantity
-        };
-      } else {
-        updatedBalances.push({
-          location_id: centralLocation.id,
-          flavor_id: flavor.id,
-          quantity: params.quantity
-        });
-      }
+      if (idx >= 0) updatedBalances[idx] = { ...updatedBalances[idx], quantity: updatedBalances[idx].quantity + params.quantity };
+      else updatedBalances.push({ location_id: centralLocation.id, flavor_id: flavor.id, quantity: params.quantity });
 
       return {
         ...prev,
         batches: [newBatch, ...prev.batches],
         balances: updatedBalances,
         movements: [movement, ...prev.movements],
-        auditLogs: [
-          {
-            id: 'audit-' + generateId(),
-            organization_id: state.settings.id,
-            user_id: state.currentUser.id,
-            user_name: state.currentUser.name,
-            action: 'batch_created_manual',
-            entity_type: 'inventory_batch',
-            entity_id: newBatch.id,
-            details: `Lote avulso ${refCode} com ${params.quantity} brownies de ${flavor.name} adicionado ao estoque central`,
-            created_at: nowIso
-          },
-          ...prev.auditLogs
-        ]
+        auditLogs: [audit, ...prev.auditLogs]
       };
     });
 
+    void persist.createBatchManual(newBatch, movement, audit);
+
     return { success: true };
   };
 
-  // Delete Sale
-  const deleteSale = (saleId: string): { success: boolean; error?: string } => {
-    const sale = state.sales.find(s => s.id === saleId);
-    if (!sale) return { success: false, error: 'Venda não encontrada' };
+  // ============================== Commissions & Expenses ==============================
+  const payCommission = (params: { sellerId: string; entryIds: string[]; paymentMethod: string; notes?: string }): { success: boolean; error?: string } => {
+    const seller = state.profiles.find(p => p.id === params.sellerId);
+    if (!seller) return { success: false, error: 'Vendedor não encontrado' };
 
-    if (sale.status === 'completed') {
-      cancelSale(saleId, 'Exclusão do registro de venda');
-    }
+    const selectedEntries = state.commissions.filter(c => params.entryIds.includes(c.id));
+    if (selectedEntries.length === 0) return { success: false, error: 'Nenhuma comissão pendente selecionada' };
+
+    const totalAmount = selectedEntries.reduce((sum, e) => sum + e.amount, 0);
+    const nowIso = new Date().toISOString();
+    const payoutNumber = `PAG-${(state.payouts.length + 1).toString().padStart(3, '0')}`;
+
+    const newPayout: CommissionPayout = {
+      id: generateId(),
+      payout_number: payoutNumber,
+      organization_id: state.settings.id,
+      seller_id: seller.id,
+      seller_name: seller.name,
+      period_start: selectedEntries[selectedEntries.length - 1]?.created_at.split('T')[0] || nowIso.split('T')[0],
+      period_end: nowIso.split('T')[0],
+      amount: totalAmount,
+      status: 'paid',
+      paid_at: nowIso,
+      payment_method: params.paymentMethod || 'Pix',
+      notes: params.notes,
+      entry_ids: params.entryIds,
+      created_by: state.currentUser.name,
+      created_at: nowIso
+    };
+
+    const audit: AuditLog = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      user_id: state.currentUser.id,
+      user_name: state.currentUser.name,
+      action: 'commission_paid',
+      entity_type: 'commission_payout',
+      entity_id: newPayout.id,
+      details: `Pagamento de comissão ${payoutNumber} para ${seller.name}. Valor: R$ ${totalAmount.toFixed(2)}`,
+      created_at: nowIso
+    };
 
     setState(prev => ({
       ...prev,
-      sales: prev.sales.filter(s => s.id !== saleId),
-      commissions: prev.commissions.filter(c => c.sale_id !== saleId),
-      auditLogs: [
-        {
-          id: 'audit-' + generateId(),
-          organization_id: state.settings.id,
-          user_id: state.currentUser.id,
-          user_name: state.currentUser.name,
-          action: 'sale_deleted',
-          entity_type: 'sale',
-          entity_id: saleId,
-          details: `Registro de venda ${sale.pix_txid} removido do sistema`,
-          created_at: new Date().toISOString()
-        },
-        ...prev.auditLogs
-      ]
+      payouts: [newPayout, ...prev.payouts],
+      commissions: prev.commissions.map(c => (params.entryIds.includes(c.id) ? { ...c, status: 'paid' as const } : c)),
+      auditLogs: [audit, ...prev.auditLogs]
     }));
+
+    void persist.payCommission(newPayout, params.entryIds, audit);
 
     return { success: true };
   };
 
-  // ==========================================================================
-  // Reservations (encomendas): a seller registers the customer's name, the
-  // quantity per flavor and the date it should be sold/delivered — then
-  // later marks it as delivered. The owner uses the pending totals to know
-  // how much stock to hand each seller.
-  // ==========================================================================
+  const addExpense = (params: { category: Expense['category']; description: string; amount: number; expenseDate?: string }): { success: boolean } => {
+    const nowIso = new Date().toISOString();
+    const newExpense: Expense = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      category: params.category,
+      description: params.description,
+      amount: params.amount,
+      expense_date: params.expenseDate || nowIso.split('T')[0],
+      created_by: state.currentUser.name,
+      created_at: nowIso
+    };
+
+    const audit: AuditLog = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      user_id: state.currentUser.id,
+      user_name: state.currentUser.name,
+      action: 'expense_created',
+      entity_type: 'expense',
+      entity_id: newExpense.id,
+      details: `Despesa registrada: ${params.description} - R$ ${params.amount.toFixed(2)}`,
+      created_at: nowIso
+    };
+
+    setState(prev => ({ ...prev, expenses: [newExpense, ...prev.expenses], auditLogs: [audit, ...prev.auditLogs] }));
+
+    void persist.expense(newExpense, audit);
+
+    return { success: true };
+  };
+
+  const deleteExpense = (expenseId: string): { success: boolean; error?: string } => {
+    const expense = state.expenses.find(e => e.id === expenseId);
+    if (!expense) return { success: false, error: 'Despesa não encontrada' };
+
+    const audit: AuditLog = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      user_id: state.currentUser.id,
+      user_name: state.currentUser.name,
+      action: 'expense_deleted',
+      entity_type: 'expense',
+      entity_id: expenseId,
+      details: `Despesa "${expense.description}" de R$ ${expense.amount.toFixed(2)} excluída`,
+      created_at: new Date().toISOString()
+    };
+
+    setState(prev => ({ ...prev, expenses: prev.expenses.filter(e => e.id !== expenseId), auditLogs: [audit, ...prev.auditLogs] }));
+
+    void persist.deleteExpense(expenseId, audit);
+
+    return { success: true };
+  };
+
+  // ============================== Sellers (owner-only, backed by an Edge Function) ==============================
+  // Creating/deleting a login or resetting someone else's password needs the Auth Admin API,
+  // which only runs safely on the server with the service role — never in the browser. These
+  // three calls hit the `manage-seller` Edge Function, authenticated as the current owner.
+  const callManageSeller = async (body: Record<string, any>): Promise<{ success: boolean; error?: string; profile?: any }> => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) return { success: false, error: 'Sessão expirada, faça login novamente.' };
+
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-seller', {
+        body,
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (error) return { success: false, error: error.message };
+      if (data?.error) return { success: false, error: data.error };
+      return { success: true, profile: data?.profile };
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Falha ao comunicar com o servidor' };
+    }
+  };
+
+  const createSeller = async (params: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    commissionType?: 'percentage_of_gross_profit' | 'fixed_per_unit';
+    commissionValue?: number;
+  }): Promise<{ success: boolean; seller?: Profile; error?: string }> => {
+    if (!params.name.trim()) return { success: false, error: 'O nome é obrigatório' };
+    if (!params.email.trim()) return { success: false, error: 'O e-mail de acesso é obrigatório' };
+    if (!params.password || params.password.trim().length < 4) {
+      return { success: false, error: 'Defina uma senha de acesso com pelo menos 4 caracteres' };
+    }
+
+    const res = await callManageSeller({
+      action: 'create',
+      name: params.name.trim(),
+      email: params.email.trim(),
+      phone: params.phone.trim(),
+      password: params.password.trim(),
+      commissionType: params.commissionType,
+      commissionValue: params.commissionValue
+    });
+
+    if (res.success) await refetch();
+    return res.success ? { success: true, seller: res.profile } : { success: false, error: res.error };
+  };
+
+  const deleteSeller = async (sellerId: string): Promise<{ success: boolean; error?: string }> => {
+    const seller = state.profiles.find(p => p.id === sellerId);
+    if (!seller) return { success: false, error: 'Vendedor não encontrado' };
+    if (seller.role === 'owner') return { success: false, error: 'Não é permitido excluir o administrador' };
+
+    const res = await callManageSeller({ action: 'delete', sellerId });
+    if (res.success) await refetch();
+    return res;
+  };
+
+  const setAccountPassword = async (userId: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    if (!newPassword || newPassword.trim().length < 4) {
+      return { success: false, error: 'A senha precisa ter pelo menos 4 caracteres' };
+    }
+    return callManageSeller({ action: 'reset_password', userId, newPassword: newPassword.trim() });
+  };
+
+  const toggleSellerStatus = (sellerId: string) => {
+    const target = state.profiles.find(p => p.id === sellerId);
+    if (!target) return;
+    const newStatus = target.status === 'active' ? 'inactive' : 'active';
+
+    setState(prev => ({ ...prev, profiles: prev.profiles.map(p => (p.id === sellerId ? { ...p, status: newStatus } : p)) }));
+
+    void persist.toggleSellerStatus(sellerId, newStatus);
+  };
+
+  // ============================== Catalog: suppliers & flavors ==============================
+  const createSupplier = (params: Omit<Supplier, 'id' | 'organization_id' | 'created_at' | 'active'>) => {
+    const newSupplier: Supplier = { ...params, id: generateId(), organization_id: state.settings.id, active: true, created_at: new Date().toISOString() };
+    setState(prev => ({ ...prev, suppliers: [newSupplier, ...prev.suppliers] }));
+    void persist.createSupplier(newSupplier);
+  };
+
+  const deleteSupplier = (supplierId: string): { success: boolean; error?: string } => {
+    const supplier = state.suppliers.find(s => s.id === supplierId);
+    if (!supplier) return { success: false, error: 'Fornecedor não encontrado' };
+
+    const audit: AuditLog = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      user_id: state.currentUser.id,
+      user_name: state.currentUser.name,
+      action: 'supplier_deleted',
+      entity_type: 'supplier',
+      entity_id: supplierId,
+      details: `Fornecedor ${supplier.name} removido`,
+      created_at: new Date().toISOString()
+    };
+
+    setState(prev => ({ ...prev, suppliers: prev.suppliers.filter(s => s.id !== supplierId), auditLogs: [audit, ...prev.auditLogs] }));
+
+    void persist.deleteSupplier(supplierId, audit);
+
+    return { success: true };
+  };
+
+  const createFlavor = (name: string) => {
+    if (!name.trim()) return;
+    const newFlavor: Flavor = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      name: name.trim(),
+      active: true,
+      sort_order: state.flavors.length + 1,
+      created_at: new Date().toISOString()
+    };
+
+    const locationIds = state.locations.map(l => l.id);
+
+    setState(prev => ({
+      ...prev,
+      flavors: [...prev.flavors, newFlavor],
+      balances: [...prev.balances, ...locationIds.map(locId => ({ location_id: locId, flavor_id: newFlavor.id, quantity: 0 }))]
+    }));
+
+    void persist.createFlavor(newFlavor, locationIds);
+  };
+
+  const toggleFlavorActive = (flavorId: string) => {
+    const flavor = state.flavors.find(f => f.id === flavorId);
+    if (!flavor) return;
+    const nextActive = !flavor.active;
+    setState(prev => ({ ...prev, flavors: prev.flavors.map(f => (f.id === flavorId ? { ...f, active: nextActive } : f)) }));
+    void persist.toggleFlavorActive(flavorId, nextActive);
+  };
+
+  const deleteFlavor = (flavorId: string): { success: boolean; error?: string } => {
+    const flavor = state.flavors.find(f => f.id === flavorId);
+    if (!flavor) return { success: false, error: 'Sabor não encontrado' };
+
+    const audit: AuditLog = {
+      id: generateId(),
+      organization_id: state.settings.id,
+      user_id: state.currentUser.id,
+      user_name: state.currentUser.name,
+      action: 'flavor_deleted',
+      entity_type: 'flavor',
+      entity_id: flavorId,
+      details: `Sabor "${flavor.name}" removido do catálogo`,
+      created_at: new Date().toISOString()
+    };
+
+    setState(prev => ({
+      ...prev,
+      flavors: prev.flavors.filter(f => f.id !== flavorId),
+      balances: prev.balances.filter(b => b.flavor_id !== flavorId),
+      auditLogs: [audit, ...prev.auditLogs]
+    }));
+
+    void persist.deleteFlavor(flavorId, audit);
+
+    return { success: true };
+  };
+
+  // ============================== Reservations ==============================
   const createReservation = (params: {
     sellerId?: string;
     customerName: string;
@@ -1721,25 +2149,20 @@ function useStoreInternal() {
     if (items.length === 0) return { success: false, error: 'Informe ao menos um sabor e quantidade' };
 
     const sellerId = params.sellerId || state.currentUser.id;
-    const seller = state.profiles.find(p => p.id === sellerId);
+    const seller = state.profiles.find(p => p.id === sellerId) || (sellerId === state.currentUser.id ? state.currentUser : undefined);
     if (!seller) return { success: false, error: 'Vendedor não encontrado' };
 
     const nowIso = new Date().toISOString();
 
-    const reservationItems: import('../types').ReservationItem[] = items.map(item => {
+    const reservationItems: ReservationItem[] = items.map(item => {
       const flavor = state.flavors.find(f => f.id === item.flavorId);
-      return {
-        id: 'resi-' + generateId(),
-        flavor_id: item.flavorId,
-        flavor_name: flavor?.name || 'Sabor',
-        quantity: Number(item.quantity)
-      };
+      return { id: generateId(), flavor_id: item.flavorId, flavor_name: flavor?.name || 'Sabor', quantity: Number(item.quantity) };
     });
 
     const totalQuantity = reservationItems.reduce((s, i) => s + i.quantity, 0);
 
     const newReservation: Reservation = {
-      id: 'res-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       seller_id: seller.id,
       seller_name: seller.name,
@@ -1754,7 +2177,7 @@ function useStoreInternal() {
     };
 
     const audit: AuditLog = {
-      id: 'audit-' + generateId(),
+      id: generateId(),
       organization_id: state.settings.id,
       user_id: state.currentUser.id,
       user_name: state.currentUser.name,
@@ -1765,11 +2188,9 @@ function useStoreInternal() {
       created_at: nowIso
     };
 
-    setState(prev => ({
-      ...prev,
-      reservations: [newReservation, ...prev.reservations],
-      auditLogs: [audit, ...prev.auditLogs]
-    }));
+    setState(prev => ({ ...prev, reservations: [newReservation, ...prev.reservations], auditLogs: [audit, ...prev.auditLogs] }));
+
+    void persist.createReservation(newReservation, reservationItems, audit);
 
     return { success: true, reservation: newReservation };
   };
@@ -1777,15 +2198,14 @@ function useStoreInternal() {
   const markReservationDelivered = (reservationId: string): { success: boolean; error?: string } => {
     const reservation = state.reservations.find(r => r.id === reservationId);
     if (!reservation) return { success: false, error: 'Reserva não encontrada' };
+    const deliveredAt = new Date().toISOString();
 
     setState(prev => ({
       ...prev,
-      reservations: prev.reservations.map(r =>
-        r.id === reservationId
-          ? { ...r, status: 'delivered', delivered_at: new Date().toISOString() }
-          : r
-      )
+      reservations: prev.reservations.map(r => (r.id === reservationId ? { ...r, status: 'delivered', delivered_at: deliveredAt } : r))
     }));
+
+    void persist.updateReservation(reservationId, { status: 'delivered', delivered_at: deliveredAt });
 
     return { success: true };
   };
@@ -1793,67 +2213,39 @@ function useStoreInternal() {
   const cancelReservation = (reservationId: string): { success: boolean; error?: string } => {
     const reservation = state.reservations.find(r => r.id === reservationId);
     if (!reservation) return { success: false, error: 'Reserva não encontrada' };
+    const cancelledAt = new Date().toISOString();
 
     setState(prev => ({
       ...prev,
-      reservations: prev.reservations.map(r =>
-        r.id === reservationId
-          ? { ...r, status: 'cancelled', cancelled_at: new Date().toISOString() }
-          : r
-      )
+      reservations: prev.reservations.map(r => (r.id === reservationId ? { ...r, status: 'cancelled', cancelled_at: cancelledAt } : r))
     }));
+
+    void persist.updateReservation(reservationId, { status: 'cancelled', cancelled_at: cancelledAt });
 
     return { success: true };
   };
 
   const deleteReservation = (reservationId: string) => {
-    setState(prev => ({
-      ...prev,
-      reservations: prev.reservations.filter(r => r.id !== reservationId)
-    }));
+    setState(prev => ({ ...prev, reservations: prev.reservations.filter(r => r.id !== reservationId) }));
+    void persist.deleteReservation(reservationId);
   };
 
-  // Pending quantity to hand each seller, broken down by flavor, based on open reservations
   const getPendingReservationSummary = () => {
     const pending = state.reservations.filter(r => r.status === 'pending');
     const bySeller = new Map<string, { sellerId: string; sellerName: string; totalQuantity: number; byFlavor: Record<string, number>; count: number }>();
 
     for (const r of pending) {
-      const entry = bySeller.get(r.seller_id) || {
-        sellerId: r.seller_id,
-        sellerName: r.seller_name,
-        totalQuantity: 0,
-        byFlavor: {} as Record<string, number>,
-        count: 0
-      };
+      const entry = bySeller.get(r.seller_id) || { sellerId: r.seller_id, sellerName: r.seller_name, totalQuantity: 0, byFlavor: {} as Record<string, number>, count: 0 };
       entry.count += 1;
       entry.totalQuantity += r.total_quantity;
-      for (const item of r.items) {
-        entry.byFlavor[item.flavor_name] = (entry.byFlavor[item.flavor_name] || 0) + item.quantity;
-      }
+      for (const item of r.items) entry.byFlavor[item.flavor_name] = (entry.byFlavor[item.flavor_name] || 0) + item.quantity;
       bySeller.set(r.seller_id, entry);
     }
 
     return Array.from(bySeller.values());
   };
 
-  // ==========================================================================
-  // Smart replenishment: per-seller daily average sales, minimum/target stock
-  // and suggested transfer quantity, plus a central-warehouse purchase
-  // suggestion. Formulas as specified by the owner:
-  //
-  //   VMD (venda média diária)   = unidades vendidas nos últimos 7 dias / dias em que vendeu
-  //   estoque_minimo             = ceil(VMD * 1.20)                    — dispara reposição
-  //   estoque_alvo               = ceil(VMD * 2 * 1.20)                — para onde repor
-  //   estoque_disponivel         = estoque_fisico - unidades_reservadas
-  //   status: disponivel <= minimo            -> vermelho (repor)
-  //           disponivel <= minimo * 1.30     -> amarelo (próximo)
-  //           caso contrário                  -> verde (ok)
-  //   quantidade_reposicao       = max(0, estoque_alvo - estoque_disponivel), limitada ao estoque central
-  //
-  //   Central: necessidade_semanal = soma(VMD) * dias_de_venda_semana * 1.20
-  //            pedido_fornecedor   = max(0, necessidade_semanal - estoque_central - estoque_com_vendedores - estoque_em_transito)
-  // ==========================================================================
+  // ============================== Smart replenishment ==============================
   const REPLENISHMENT_LOOKBACK_DAYS = 7;
   const REPLENISHMENT_SAFETY_MARGIN = 1.2;
   const REPLENISHMENT_TARGET_COVERAGE_DAYS = 2;
@@ -1868,29 +2260,18 @@ function useStoreInternal() {
     const sellers = state.profiles.filter(p => p.role === 'seller' && p.status === 'active');
 
     const centralLocation = state.locations.find(l => l.type === 'central');
-    const centralStock = centralLocation
-      ? activeFlavors.reduce((sum, f) => sum + getFlavorStock(centralLocation.id, f.id), 0)
-      : 0;
+    const centralStock = centralLocation ? activeFlavors.reduce((sum, f) => sum + getFlavorStock(centralLocation.id, f.id), 0) : 0;
 
     const perSeller = sellers.map(seller => {
       const location = state.locations.find(l => l.type === 'seller' && l.seller_id === seller.id);
-      const physicalStock = location
-        ? activeFlavors.reduce((sum, f) => sum + getFlavorStock(location.id, f.id), 0)
-        : 0;
+      const physicalStock = location ? activeFlavors.reduce((sum, f) => sum + getFlavorStock(location.id, f.id), 0) : 0;
 
-      // Confirmed sales in the lookback window, and how many distinct days had at least one sale
-      const recentSales = state.sales.filter(
-        s => s.seller_id === seller.id && s.status === 'confirmed' && new Date(s.created_at) >= lookbackStart
-      );
+      const recentSales = state.sales.filter(s => s.seller_id === seller.id && s.status === 'confirmed' && new Date(s.created_at) >= lookbackStart);
       const unitsSoldRecently = recentSales.reduce((sum, s) => sum + s.total_quantity, 0);
       const sellingDays = new Set(recentSales.map(s => s.created_at.split('T')[0])).size;
-
       const dailyAverage = sellingDays > 0 ? unitsSoldRecently / sellingDays : 0;
 
-      const reservedUnits = state.reservations
-        .filter(r => r.seller_id === seller.id && r.status === 'pending')
-        .reduce((sum, r) => sum + r.total_quantity, 0);
-
+      const reservedUnits = state.reservations.filter(r => r.seller_id === seller.id && r.status === 'pending').reduce((sum, r) => sum + r.total_quantity, 0);
       const availableStock = physicalStock - reservedUnits;
 
       const minStock = Math.ceil(dailyAverage * REPLENISHMENT_SAFETY_MARGIN);
@@ -1904,74 +2285,36 @@ function useStoreInternal() {
       const suggestedUnits = status === 'ok' ? 0 : Math.min(rawSuggestion, centralStock);
 
       const currentCoverageDays = dailyAverage > 0 ? availableStock / dailyAverage : null;
-      const coverageAfterReplenishment =
-        dailyAverage > 0 ? (availableStock + suggestedUnits) / dailyAverage : null;
+      const coverageAfterReplenishment = dailyAverage > 0 ? (availableStock + suggestedUnits) / dailyAverage : null;
 
-      return {
-        seller,
-        dailyAverage,
-        physicalStock,
-        reservedUnits,
-        availableStock,
-        minStock,
-        targetStock,
-        status,
-        suggestedUnits,
-        currentCoverageDays,
-        coverageAfterReplenishment
-      };
+      return { seller, dailyAverage, physicalStock, reservedUnits, availableStock, minStock, targetStock, status, suggestedUnits, currentCoverageDays, coverageAfterReplenishment };
     });
 
-    // Central warehouse: weekly demand across all sellers, with safety margin,
-    // net of what's already in the operation and already on order from suppliers.
     const sellerStockTotal = perSeller.reduce((sum, s) => sum + s.physicalStock, 0);
     const inTransitUnits = state.purchaseOrders
       .filter(po => po.status === 'ordered' || po.status === 'partially_received')
-      .reduce(
-        (sum, po) => sum + po.items.reduce((s, i) => s + Math.max(0, i.quantity_ordered - i.quantity_received), 0),
-        0
-      );
+      .reduce((sum, po) => sum + po.items.reduce((s, i) => s + Math.max(0, i.quantity_ordered - i.quantity_received), 0), 0);
 
-    const weeklyDemand =
-      perSeller.reduce((sum, s) => sum + s.dailyAverage, 0) * REPLENISHMENT_SELLING_DAYS_PER_WEEK;
+    const weeklyDemand = perSeller.reduce((sum, s) => sum + s.dailyAverage, 0) * REPLENISHMENT_SELLING_DAYS_PER_WEEK;
     const weeklyNeed = weeklyDemand * REPLENISHMENT_SAFETY_MARGIN;
-    const supplierOrderSuggestion = Math.max(
-      0,
-      Math.ceil(weeklyNeed - centralStock - sellerStockTotal - inTransitUnits)
-    );
+    const supplierOrderSuggestion = Math.max(0, Math.ceil(weeklyNeed - centralStock - sellerStockTotal - inTransitUnits));
 
-    return {
-      sellers: perSeller,
-      central: {
-        centralStock,
-        sellerStockTotal,
-        inTransitUnits,
-        weeklyDemand,
-        weeklyNeed,
-        supplierOrderSuggestion
-      }
-    };
+    return { sellers: perSeller, central: { centralStock, sellerStockTotal, inTransitUnits, weeklyDemand, weeklyNeed, supplierOrderSuggestion } };
   };
 
-  // Update Settings
+  // ============================== Settings ==============================
   const updateSettings = (partial: Partial<OrganizationSettings>) => {
-    setState(prev => ({
-      ...prev,
-      settings: { ...prev.settings, ...partial }
-    }));
-  };
-
-  // Reset to initial demo state
-  const resetDemoData = () => {
-    const fresh = ensureSeedFixes(createInitialState());
-    setState(fresh);
-    localStorage.removeItem(STORAGE_KEY);
+    setState(prev => ({ ...prev, settings: { ...prev.settings, ...partial } }));
+    void persist.updateSettings(state.settings.id, partial);
   };
 
   return {
     state,
     currentUser: state.currentUser,
-    switchUser,
+    isLoading,
+    isAuthenticated: authChecked && !!state.currentUser.id,
+    login,
+    logout,
     setDateFilter,
     isDateInFilter,
     getSellerLocation,
@@ -2007,8 +2350,7 @@ function useStoreInternal() {
     deleteReservation,
     getPendingReservationSummary,
     getReplenishmentAnalysis,
-    updateSettings,
-    resetDemoData
+    updateSettings
   };
 }
 
@@ -2024,9 +2366,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 export function useStore(): StoreContextType {
   const context = useContext(StoreContext);
   if (!context) {
-    // If used outside provider, return internal hook
     return useStoreInternal();
   }
   return context;
 }
-

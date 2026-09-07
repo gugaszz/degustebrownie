@@ -1,85 +1,27 @@
 import React, { useState } from 'react';
-import { Lock, Mail, Eye, EyeOff, ShieldCheck, Smartphone, UserPlus, LogIn } from 'lucide-react';
+import { Lock, Mail, Eye, EyeOff, ShieldCheck, Smartphone, LogIn } from 'lucide-react';
 import { useStore } from '../services/store';
 
-interface LoginViewProps {
-  onLoginSuccess: () => void;
-}
+export const LoginView: React.FC = () => {
+  const { login } = useStore();
 
-export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
-  const { state, switchUser, setAccountPassword } = useStore();
-
-  // Only the owner account can ever be set up through this screen, and only once —
-  // before it has a password. Every other account (sellers included) is created by
-  // the owner inside the app (Vendedores > Novo Vendedor); nobody can self-register.
-  const owner = state.profiles.find(p => p.role === 'owner');
-  const ownerNeedsSetup = !!owner && !owner.password;
-
-  // Form Fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      if (ownerNeedsSetup && owner) {
-        // First-ever access: Gustavo defines his own name, e-mail and password.
-        if (!name.trim()) {
-          setErrorMsg('Por favor, informe seu nome.');
-          setIsLoading(false);
-          return;
-        }
-        if (!newPassword.trim() || newPassword.trim().length < 4) {
-          setErrorMsg('Defina uma senha com pelo menos 4 caracteres.');
-          setIsLoading(false);
-          return;
-        }
+    const res = await login(email, password);
 
-        owner.name = name.trim();
-        owner.email = email.trim().toLowerCase();
-        setAccountPassword(owner.id, newPassword.trim());
-        switchUser(owner.id);
-        setIsLoading(false);
-        onLoginSuccess();
-        return;
-      }
-
-      // Regular login: match an existing account by e-mail and password.
-      const cleanEmail = email.trim().toLowerCase();
-      const matchedUser = state.profiles.find(
-        p => p.email && p.email.trim().toLowerCase() === cleanEmail
-      );
-
-      if (!matchedUser) {
-        setErrorMsg('E-mail não encontrado. As contas são criadas apenas pelo proprietário.');
-        setIsLoading(false);
-        return;
-      }
-
-      if (matchedUser.status === 'inactive') {
-        setErrorMsg('Esta conta está inativa. Fale com o proprietário.');
-        setIsLoading(false);
-        return;
-      }
-
-      if (!matchedUser.password || matchedUser.password !== password) {
-        setErrorMsg('Senha incorreta.');
-        setIsLoading(false);
-        return;
-      }
-
-      switchUser(matchedUser.id);
-      setIsLoading(false);
-      onLoginSuccess();
-    }, 300);
+    setIsLoading(false);
+    if (!res.success) {
+      setErrorMsg(res.error || 'Não foi possível entrar. Confira o e-mail e a senha.');
+    }
   };
 
   return (
@@ -96,13 +38,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         {/* Login Card */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E7E5E2] shadow-xs space-y-5">
           <div className="border-b border-[#EFEDEA] pb-3">
-            <h2 className="text-sm font-bold text-[#111111]">
-              {ownerNeedsSetup ? 'Configurar Acesso do Proprietário' : 'Entrar no Sistema'}
-            </h2>
+            <h2 className="text-sm font-bold text-[#111111]">Entrar no Sistema</h2>
             <p className="text-xs text-[#6B6B6B] mt-0.5">
-              {ownerNeedsSetup
-                ? 'Primeiro acesso: defina seu nome, e-mail e senha de proprietário. Os demais acessos são cadastrados por você dentro do sistema.'
-                : 'Informe o e-mail e a senha cadastrados pelo proprietário.'}
+              Informe o e-mail e a senha cadastrados pelo proprietário.
             </p>
           </div>
 
@@ -113,22 +51,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {ownerNeedsSetup && (
-              <div>
-                <label className="block text-xs font-bold text-[#111111] mb-1.5">
-                  Nome Completo
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Ex: Gustavo Antunes"
-                  className="w-full text-xs px-3.5 py-3 rounded-xl border border-[#E4E2DF] bg-[#F3F1EE] text-[#111111] focus:bg-white focus:border-[#141414] focus:ring-1 focus:ring-[#141414] outline-hidden transition"
-                />
-              </div>
-            )}
-
             <div>
               <label className="block text-xs font-bold text-[#111111] mb-1.5">
                 E-mail
@@ -148,16 +70,15 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
             <div>
               <label className="block text-xs font-bold text-[#111111] mb-1.5">
-                {ownerNeedsSetup ? 'Crie sua Senha' : 'Senha'}
+                Senha
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-[#9A9A9A] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  minLength={ownerNeedsSetup ? 4 : undefined}
-                  value={ownerNeedsSetup ? newPassword : password}
-                  onChange={e => (ownerNeedsSetup ? setNewPassword(e.target.value) : setPassword(e.target.value))}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
                   placeholder="Digite sua senha"
                   className="w-full text-xs pl-10 pr-10 py-3 rounded-xl border border-[#E4E2DF] bg-[#F3F1EE] text-[#111111] focus:bg-white focus:border-[#141414] focus:ring-1 focus:ring-[#141414] outline-hidden transition"
                 />
@@ -176,25 +97,14 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
               disabled={isLoading}
               className="w-full py-3 px-4 rounded-xl bg-[#141414] hover:bg-[#000000] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer disabled:opacity-50"
             >
-              {ownerNeedsSetup ? (
-                <>
-                  <UserPlus className="w-3.5 h-3.5" />
-                  <span>{isLoading ? 'Configurando...' : 'Concluir Configuração e Entrar'}</span>
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-3.5 h-3.5" />
-                  <span>{isLoading ? 'Acessando...' : 'Entrar no Sistema'}</span>
-                </>
-              )}
+              <LogIn className="w-3.5 h-3.5" />
+              <span>{isLoading ? 'Acessando...' : 'Entrar no Sistema'}</span>
             </button>
           </form>
 
-          {!ownerNeedsSetup && (
-            <p className="text-[11px] text-[#9A9A9A] text-center leading-relaxed">
-              Não existe cadastro por conta própria. Cada acesso é criado pelo proprietário.
-            </p>
-          )}
+          <p className="text-[11px] text-[#9A9A9A] text-center leading-relaxed">
+            Não existe cadastro por conta própria. Cada acesso é criado pelo proprietário.
+          </p>
         </div>
 
         {/* Security / System Badges */}

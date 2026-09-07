@@ -20,7 +20,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenAlerts, onOpenInstallModal, onLogout }) => {
-  const { state, switchUser, setDateFilter, currentUser } = useStore();
+  const { state, setDateFilter, currentUser, getCentralLocation } = useStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showDateMenu, setShowDateMenu] = useState(false);
 
@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAlerts, onOpenInstallModal
 
   // Compute active alerts
   const centralStock = state.balances
-    .filter(b => b.location_id === 'loc-central')
+    .filter(b => b.location_id === getCentralLocation()?.id)
     .reduce((s, b) => s + b.quantity, 0);
   
   const lowCentralStock = centralStock < 50;
@@ -156,44 +156,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAlerts, onOpenInstallModal
               <div className="text-[11px] text-[#6B6B6B] px-3 pb-2 border-b border-[#EFEDEA]">
                 {currentUser.name} ({currentUser.role === 'owner' ? 'Proprietário' : 'Vendedor'})
               </div>
-
-              {state.profiles.length > 1 && (
-                <div className="max-h-60 overflow-y-auto py-1 border-b border-[#EFEDEA]">
-                  <div className="px-3 py-1 text-[10px] font-bold text-[#9A9A9A] uppercase tracking-wider">
-                    Alternar Conta
-                  </div>
-                  {state.profiles.map(user => {
-                    const isSelected = user.id === currentUser.id;
-                    return (
-                      <button
-                        key={user.id}
-                        onClick={() => {
-                          switchUser(user.id);
-                          setShowUserMenu(false);
-                        }}
-                        className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between transition ${
-                          isSelected ? 'bg-[#F3F1EE] text-[#141414] font-bold' : 'hover:bg-[#F3F1EE] text-[#8A8A8A]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className={`w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold ${
-                            user.role === 'owner' ? 'bg-[#141414] text-white' : 'bg-[#1B8A4F] text-white'
-                          }`}>
-                            {user.name.slice(0, 2).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="font-bold text-xs text-[#111111]">{user.name}</div>
-                            <div className="text-[10px] text-[#6B6B6B]">
-                              {user.role === 'owner' ? 'Proprietário' : 'Vendedor'}
-                            </div>
-                          </div>
-                        </div>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-[#141414]" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
 
               <div className="pt-2 px-3">
                 <button

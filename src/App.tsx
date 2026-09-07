@@ -41,13 +41,8 @@ import { SellerCommissions } from './views/seller/SellerCommissions';
 import { SellerReservations } from './views/seller/SellerReservations';
 
 function MainLayout() {
-  const { currentUser } = useStore();
+  const { currentUser, isLoading, isAuthenticated, logout } = useStore();
   const isOwner = currentUser.role === 'owner';
-
-  // Login authentication state: start logged in or allow login screen
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('brownie_authenticated') === 'true';
-  });
 
   // Current Navigation Tab
   const [currentTab, setCurrentTab] = useState<string>(isOwner ? 'dashboard' : 'seller_home');
@@ -89,19 +84,23 @@ function MainLayout() {
     setIsPayoutOpen(true);
   };
 
-  const handleLoginSuccess = () => {
-    localStorage.setItem('brownie_authenticated', 'true');
-    setIsAuthenticated(true);
-  };
-
   const handleLogout = () => {
-    localStorage.removeItem('brownie_authenticated');
-    setIsAuthenticated(false);
+    logout();
   };
 
-  // If not authenticated, show initial Login Screen
+  // Still checking for a session / fetching this account's data from the database
+  if (isLoading) {
+    return (
+      <div className="app-canvas-texture min-h-screen flex flex-col items-center justify-center gap-3 text-[#111111]">
+        <div className="w-10 h-10 rounded-full border-2 border-[#E7E5E2] border-t-[#141414] animate-spin" />
+        <p className="text-xs font-semibold text-[#6B6B6B]">Carregando seus dados...</p>
+      </div>
+    );
+  }
+
+  // If not authenticated, show the login screen
   if (!isAuthenticated) {
-    return <LoginView onLoginSuccess={handleLoginSuccess} />;
+    return <LoginView />;
   }
 
   return (

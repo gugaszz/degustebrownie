@@ -41,13 +41,13 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({
   onLogout,
   onOpenInstallModal
 }) => {
-  const { state, currentUser } = useStore();
+  const { state, currentUser, getCentralLocation } = useStore();
   const { isInstalled } = usePWAInstall();
   const isOwner = currentUser.role === 'owner';
 
   // Compute active alerts count
   const centralStock = state.balances
-    .filter(b => b.location_id === 'loc-central')
+    .filter(b => b.location_id === getCentralLocation()?.id)
     .reduce((s, b) => s + b.quantity, 0);
   const lowCentralStock = centralStock < 50;
 
