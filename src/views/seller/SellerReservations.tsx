@@ -17,6 +17,17 @@ export const SellerReservations: React.FC<SellerReservationsProps> = ({ onOpenNe
   const pending = myReservations.filter(r => r.status === 'pending');
   const pendingTotal = pending.reduce((s, r) => s + r.total_quantity, 0);
 
+  // Total reserved per flavor across all pending reservations, so the seller can
+  // see at a glance how much of each flavor is already spoken for, without
+  // opening every single reservation card to add it up by hand.
+  const pendingByFlavor = new Map<string, number>();
+  pending.forEach(r => {
+    r.items.forEach(i => {
+      pendingByFlavor.set(i.flavor_name, (pendingByFlavor.get(i.flavor_name) || 0) + i.quantity);
+    });
+  });
+  const pendingByFlavorList = Array.from(pendingByFlavor.entries()).sort((a, b) => b[1] - a[1]);
+
   const formatDate = (d: string) => {
     try {
       return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR');
@@ -53,6 +64,20 @@ export const SellerReservations: React.FC<SellerReservationsProps> = ({ onOpenNe
           <div className="text-2xl font-black text-[#A9761F] tabular-nums mt-1">{pendingTotal}</div>
         </div>
       </div>
+
+      {pendingByFlavorList.length > 0 && (
+        <div className="p-4 rounded-3xl bg-white border border-[#E7E5E2] shadow-xs">
+          <span className="text-xs font-bold text-[#111111] block mb-2">Reservado por Sabor</span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {pendingByFlavorList.map(([flavorName, qty]) => (
+              <div key={flavorName} className="p-2.5 rounded-xl bg-[#F6F5F3] border border-[#E7E5E2] flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#111111] truncate">{flavorName}</span>
+                <span className="text-xs font-black text-[#A9761F] tabular-nums shrink-0 ml-1">{qty}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-3xl border border-[#E7E5E2] shadow-xs overflow-hidden">
         {myReservations.length === 0 ? (
