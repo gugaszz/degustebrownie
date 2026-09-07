@@ -9,6 +9,7 @@ export function usePWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [isInAppBrowser, setIsInAppBrowser] = useState(false);
 
   useEffect(() => {
     // Detect standalone mode (already installed)
@@ -18,11 +19,18 @@ export function usePWAInstall() {
         (window.navigator as unknown as { standalone?: boolean }).standalone === true);
     setIsInstalled(isStandalone);
 
-    // Detect iOS devices
+    // Detect iOS devices, and the in-app browsers (WhatsApp, Instagram, Facebook,
+    // TikTok...) that open links inside their own webview. None of those webviews
+    // can install a PWA — Add to Home Screen / Instalar app just isn't available
+    // there — no matter how correctly the app itself is configured. The only fix
+    // is opening the link in the real browser (Chrome/Safari).
     if (typeof window !== 'undefined') {
       const userAgent = window.navigator.userAgent.toLowerCase();
       const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
       setIsIOS(isIOSDevice);
+
+      const inAppSignatures = ['fban', 'fbav', 'instagram', 'whatsapp', 'tiktok', 'line/', 'micromessenger'];
+      setIsInAppBrowser(inAppSignatures.some(sig => userAgent.includes(sig)));
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -64,6 +72,7 @@ export function usePWAInstall() {
     isInstallable: !!deferredPrompt,
     isInstalled,
     isIOS,
+    isInAppBrowser,
     install
   };
 }

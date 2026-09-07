@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Smartphone, Share2, PlusSquare, CheckCircle2, Download, ExternalLink, Sparkles, QrCode } from 'lucide-react';
+import { X, Smartphone, Share2, PlusSquare, CheckCircle2, Download, ExternalLink, Sparkles, QrCode, AlertTriangle, Copy, Check } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import QRCode from 'qrcode';
 
@@ -9,9 +9,10 @@ interface PWAInstallModalProps {
 }
 
 export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ isOpen, onClose }) => {
-  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+  const { isInstallable, isInstalled, isIOS, isInAppBrowser, install } = usePWAInstall();
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [installSuccess, setInstallSuccess] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     if (isOpen && typeof window !== 'undefined') {
@@ -37,6 +38,13 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ isOpen, onClos
         onClose();
       }, 1500);
     }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2500);
+    });
   };
 
   return (
@@ -68,6 +76,36 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ isOpen, onClos
             </div>
             <h4 className="text-sm font-bold text-[#111111]">Aplicativo Instalado com Sucesso!</h4>
             <p className="text-xs text-[#6B6B6B]">Agora você pode acessá-lo direto da sua tela inicial.</p>
+          </div>
+        ) : isInAppBrowser ? (
+          /* Opened from inside WhatsApp/Instagram/etc: those in-app browsers can
+             never install a PWA, no matter what. The only fix is opening the same
+             link in the real browser. */
+          <div className="space-y-3">
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-[#A9761F] shrink-0 mt-0.5" />
+              <p className="text-xs text-[#111111] leading-relaxed">
+                Você abriu esse link de dentro de um aplicativo de mensagens (WhatsApp, Instagram ou parecido).
+                Esses navegadores internos <strong>nunca conseguem instalar o app</strong>, mesmo seguindo o passo a
+                passo. É preciso abrir esse mesmo link no navegador de verdade do celular (Chrome ou Safari).
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2] space-y-2">
+              <span className="text-xs font-bold text-[#111111] block">Como abrir no navegador:</span>
+              <p className="text-xs text-[#8A8A8A] leading-relaxed">
+                Toque nos <strong>3 pontinhos (⋮)</strong> ou no ícone de <strong>compartilhar</strong> no canto
+                superior direito desta tela e escolha <strong>"Abrir no navegador"</strong> ou <strong>"Abrir no Chrome / Safari"</strong>.
+              </p>
+            </div>
+
+            <button
+              onClick={handleCopyLink}
+              className="w-full py-3 px-4 rounded-xl bg-[#141414] hover:bg-[#000000] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+            >
+              {linkCopied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+              <span>{linkCopied ? 'Link copiado!' : 'Copiar link para colar no navegador'}</span>
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
