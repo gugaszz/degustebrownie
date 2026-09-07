@@ -14,11 +14,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({ isOpen, onCl
   const activeFlavors = state.flavors.filter(f => f.active);
 
   const [supplierId, setSupplierId] = useState<string>(suppliers[0]?.id || '');
-  const [quantities, setQuantities] = useState<Record<string, number>>({
-    'flv-nutella': 70,
-    'flv-ninho': 70,
-    'flv-brigadeiro': 60
-  });
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [unitCost, setUnitCost] = useState<number>(state.settings.default_purchase_cost || 4.0);
   const [expectedDate, setExpectedDate] = useState<string>(() => {
     const d = new Date();
@@ -38,6 +34,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({ isOpen, onCl
     if (!isOpen) return;
     setErrorMsg(null);
     setSuccessMsg(null);
+    setQuantities({});
     if (!supplierId || !suppliers.some(s => s.id === supplierId)) {
       setSupplierId(suppliers[0]?.id || '');
     }
