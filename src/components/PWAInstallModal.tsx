@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { X, Smartphone, Share2, PlusSquare, CheckCircle2, Download, ExternalLink, Sparkles, QrCode, AlertTriangle, Copy, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Smartphone, Share2, PlusSquare, CheckCircle2, Download, AlertTriangle, Copy, Check } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
-import QRCode from 'qrcode';
 
 interface PWAInstallModalProps {
   isOpen: boolean;
@@ -9,23 +8,9 @@ interface PWAInstallModalProps {
 }
 
 export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ isOpen, onClose }) => {
-  const { isInstallable, isInstalled, isIOS, isInAppBrowser, install } = usePWAInstall();
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const { isInstallable, isIOS, isInAppBrowser, install } = usePWAInstall();
   const [installSuccess, setInstallSuccess] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-
-  useEffect(() => {
-    if (isOpen && typeof window !== 'undefined') {
-      QRCode.toDataURL(window.location.href, {
-        width: 180,
-        margin: 1,
-        color: {
-          dark: '#141414',
-          light: '#FFFFFF'
-        }
-      }).then(setQrDataUrl).catch(console.error);
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -86,16 +71,8 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ isOpen, onClos
               <AlertTriangle className="w-4 h-4 text-[#A9761F] shrink-0 mt-0.5" />
               <p className="text-xs text-[#111111] leading-relaxed">
                 Você abriu esse link de dentro de um aplicativo de mensagens (WhatsApp, Instagram ou parecido).
-                Esses navegadores internos <strong>nunca conseguem instalar o app</strong>, mesmo seguindo o passo a
-                passo. É preciso abrir esse mesmo link no navegador de verdade do celular (Chrome ou Safari).
-              </p>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2] space-y-2">
-              <span className="text-xs font-bold text-[#111111] block">Como abrir no navegador:</span>
-              <p className="text-xs text-[#8A8A8A] leading-relaxed">
-                Toque nos <strong>3 pontinhos (⋮)</strong> ou no ícone de <strong>compartilhar</strong> no canto
-                superior direito desta tela e escolha <strong>"Abrir no navegador"</strong> ou <strong>"Abrir no Chrome / Safari"</strong>.
+                Esses navegadores internos <strong>nunca conseguem instalar o app</strong>. Copie o link abaixo e
+                cole no Chrome ou Safari de verdade.
               </p>
             </div>
 
@@ -107,90 +84,50 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ isOpen, onClos
               <span>{linkCopied ? 'Link copiado!' : 'Copiar link para colar no navegador'}</span>
             </button>
           </div>
+        ) : isIOS && !isInstallable ? (
+          /* iOS Safari never fires an install prompt — Apple only allows the manual
+             Share > Add to Home Screen flow, there's no button that can trigger it. */
+          <div className="space-y-3">
+            <div className="space-y-2.5 text-xs text-[#111111]">
+              <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2]">
+                <div className="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xs">1</div>
+                <div>
+                  <span>Toque no botão <strong>Compartilhar</strong> na barra do Safari</span>
+                  <div className="flex items-center gap-1 text-[11px] text-[#6B6B6B] mt-0.5">
+                    <Share2 className="w-3.5 h-3.5 text-blue-600" />
+                    (ícone do quadrado com a seta para cima)
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2]">
+                <div className="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xs">2</div>
+                <div>
+                  <span>Toque em <strong>"Adicionar à Tela de Início"</strong></span>
+                  <div className="flex items-center gap-1 text-[11px] text-[#6B6B6B] mt-0.5">
+                    <PlusSquare className="w-3.5 h-3.5 text-blue-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
-          <div className="space-y-4">
-            {/* Install Flow Button (Chrome / Android / Desktop) */}
-            {isInstallable ? (
-              <div className="p-4 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2] space-y-3 text-center">
-                <p className="text-xs text-[#8A8A8A]">
-                  Seu navegador é totalmente compatível. Clique abaixo para adicionar à tela inicial em 1 segundo:
-                </p>
-                <button
-                  onClick={handleInstallClick}
-                  className="w-full py-3 px-4 rounded-xl bg-[#141414] hover:bg-[#000000] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Baixar como App Agora</span>
-                </button>
-              </div>
-            ) : isIOS ? (
-              /* iOS Safari Instructions */
-              <div className="space-y-3">
-                <span className="text-[11px] font-bold text-[#9A9A9A] uppercase tracking-wider block">
-                  Como instalar no iPhone / iPad (Safari)
-                </span>
-                <div className="space-y-2.5 text-xs text-[#111111]">
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2]">
-                    <div className="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xs">
-                      1
-                    </div>
-                    <div>
-                      <span>Toque no botão <strong>Compartilhar</strong> na barra inferior do Safari</span>
-                      <div className="flex items-center gap-1 text-[11px] text-[#6B6B6B] mt-0.5">
-                        <Share2 className="w-3.5 h-3.5 text-blue-600" />
-                        (ícone do quadrado com a seta para cima)
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2]">
-                    <div className="w-7 h-7 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 font-bold text-xs">
-                      2
-                    </div>
-                    <div>
-                      <span>Role a lista e toque em <strong>"Adicionar à Tela de Início"</strong></span>
-                      <div className="flex items-center gap-1 text-[11px] text-[#6B6B6B] mt-0.5">
-                        <PlusSquare className="w-3.5 h-3.5 text-blue-600" />
-                        (ícone de quadrado com o sinal de mais)
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2]">
-                    <div className="w-7 h-7 rounded-xl bg-emerald-50 text-[#1B8A4F] flex items-center justify-center shrink-0 font-bold text-xs">
-                      3
-                    </div>
-                    <div>
-                      <span>Toque em <strong>"Adicionar"</strong> no canto superior direito</span>
-                      <span className="block text-[11px] text-[#6B6B6B] mt-0.5">
-                        Pronto! O ícone oficial será criado na sua tela de aplicativos.
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Generic Android / Desktop Guide + QR Code for mobile scan */
-              <div className="space-y-3">
-                <div className="p-3.5 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2] space-y-2">
-                  <span className="text-xs font-bold text-[#111111] block">No Android / Chrome:</span>
-                  <p className="text-xs text-[#8A8A8A] leading-relaxed">
-                    Toque nos <strong>3 pontinhos (⋮)</strong> no canto superior direito do navegador e selecione <strong>"Instalar aplicativo"</strong> ou <strong>"Adicionar à tela inicial"</strong>.
-                  </p>
-                </div>
-
-                {qrDataUrl && (
-                  <div className="p-4 rounded-2xl border border-[#E7E5E2] bg-white text-center space-y-2">
-                    <span className="text-[11px] font-bold text-[#9A9A9A] uppercase tracking-wider block">
-                      Acessar no Celular (Escaneie o QR Code)
-                    </span>
-                    <img src={qrDataUrl} alt="QR Code PWA" className="w-32 h-32 mx-auto rounded-xl border border-[#E7E5E2]" />
-                    <p className="text-[11px] text-[#6B6B6B]">
-                      Aponte a câmera do seu celular para abrir e instalar diretamente nele
-                    </p>
-                  </div>
-                )}
-              </div>
+          /* Everyone else (Android Chrome and any other real browser): one button. */
+          <div className="p-4 rounded-2xl bg-[#F3F1EE] border border-[#E7E5E2] space-y-3 text-center">
+            <p className="text-xs text-[#8A8A8A]">
+              Toque no botão abaixo para instalar o Brownie Control como aplicativo no seu celular.
+            </p>
+            <button
+              onClick={handleInstallClick}
+              disabled={!isInstallable}
+              className="w-full py-3 px-4 rounded-xl bg-[#141414] hover:bg-[#000000] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Download className="w-4 h-4" />
+              <span>Baixar como App</span>
+            </button>
+            {!isInstallable && (
+              <p className="text-[11px] text-[#9A9A9A]">
+                Se o botão estiver apagado, toque nos <strong>⋮</strong> do navegador e escolha <strong>"Instalar aplicativo"</strong>.
+              </p>
             )}
           </div>
         )}
