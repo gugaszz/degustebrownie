@@ -22,6 +22,13 @@ export default defineConfig(() => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
           navigateFallback: '/index.html',
+          // Take over every open tab the moment a new version installs, and throw
+          // away any previously cached build, instead of waiting for every tab to
+          // be closed and reopened — that's how someone ends up stuck for days on
+          // a build from before a redesign or a backend migration.
+          skipWaiting: true,
+          clientsClaim: true,
+          cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
               // Never cache Supabase API calls — the app must always see live data
