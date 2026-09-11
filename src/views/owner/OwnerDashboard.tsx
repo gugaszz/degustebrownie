@@ -18,7 +18,7 @@ import {
   CartesianGrid
 } from 'recharts';
 import { useStore } from '../../services/store';
-import { formatCurrency, formatDateTime } from '../../utils/pix';
+import { formatCurrency, formatDateTime, toLocalDateStr } from '../../utils/pix';
 import { SmartReplenishmentCard } from '../../components/SmartReplenishmentCard';
 
 interface OwnerDashboardProps {
@@ -53,7 +53,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
     const last = new Date(endDate + 'T00:00:00');
     let guard = 0;
     while (cursor <= last && guard < 370) {
-      const key = cursor.toISOString().split('T')[0];
+      const key = toLocalDateStr(cursor);
       revenueTrend.push({
         date: key,
         label: new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(cursor),
@@ -65,7 +65,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   }
   const trendByDate = new Map(revenueTrend.map(t => [t.date, t]));
   filteredSales.forEach(s => {
-    const key = s.created_at.split('T')[0];
+    const key = toLocalDateStr(s.created_at);
     const point = trendByDate.get(key);
     if (point) point.revenue += s.total_amount;
   });

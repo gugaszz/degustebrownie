@@ -11,7 +11,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { useStore } from '../../services/store';
-import { formatCurrency, formatDate } from '../../utils/pix';
+import { formatCurrency, formatDate, toLocalDateStr } from '../../utils/pix';
 
 interface OwnerPurchasesProps {
   onOpenNewPurchase: () => void;
@@ -24,7 +24,7 @@ export const OwnerPurchases: React.FC<OwnerPurchasesProps> = ({ onOpenNewPurchas
   const [expirationDate, setExpirationDate] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 14); // 14 days default shelf life
-    return d.toISOString().split('T')[0];
+    return toLocalDateStr(d);
   });
   const [batchRef, setBatchRef] = useState(`LT-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}`);
 

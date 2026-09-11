@@ -13,7 +13,7 @@ import {
   PackagePlus
 } from 'lucide-react';
 import { useStore } from '../../services/store';
-import { formatCurrency, formatDateTime, formatDate } from '../../utils/pix';
+import { formatCurrency, formatDateTime, formatDate, toLocalDateStr } from '../../utils/pix';
 
 interface OwnerInventoryProps {
   onOpenTransfer: (sellerId?: string) => void;
@@ -40,7 +40,7 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
   const [newBatchExpiration, setNewBatchExpiration] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 14);
-    return d.toISOString().split('T')[0];
+    return toLocalDateStr(d);
   });
   const [newBatchRef, setNewBatchRef] = useState('');
   const [newBatchNotes, setNewBatchNotes] = useState('');

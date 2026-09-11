@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, PackagePlus, Plus, Minus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../services/store';
-import { formatCurrency } from '../utils/pix';
+import { formatCurrency, toLocalDateStr } from '../utils/pix';
 
 interface NewPurchaseModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({ isOpen, onCl
   const [expectedDate, setExpectedDate] = useState<string>(() => {
     const d = new Date();
     d.setDate(d.getDate() + 2);
-    return d.toISOString().split('T')[0];
+    return toLocalDateStr(d);
   });
   const [notes, setNotes] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);

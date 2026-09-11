@@ -195,3 +195,28 @@ export function formatDate(isoString: string): string {
     return isoString;
   }
 }
+
+/**
+ * The operation's fixed timezone (matches organizations.timezone in the DB).
+ * Every "what calendar day is this" decision in the app goes through this,
+ * instead of the browser's own local zone, so results are the same on every
+ * device regardless of where it happens to be set.
+ */
+export const ORG_TIMEZONE = 'America/Fortaleza';
+
+/**
+ * Calendar date (YYYY-MM-DD) of a moment, in the organization's timezone.
+ *
+ * Do NOT use `date.toISOString().split('T')[0]` for this — that reads the UTC
+ * calendar date instead, and Brazil is UTC-3, so anything that happens between
+ * 21:00 and 23:59 local time lands on UTC's *next* day. A sale confirmed at
+ * 21:30 would silently get filed under tomorrow: "hoje" would miss it, "este
+ * mês" would still catch it (it's still <= month-end), producing exactly that
+ * kind of "the month total is right but today's total is too low" mismatch.
+ */
+export function toLocalDateStr(input: Date | string = new Date()): string {
+  const date = typeof input === 'string' ? new Date(input) : input;
+  // en-CA locale formats as YYYY-MM-DD, which is what every date-string
+  // comparison and <input type="date"> in this app expects.
+  return new Intl.DateTimeFormat('en-CA', { timeZone: ORG_TIMEZONE }).format(date);
+}

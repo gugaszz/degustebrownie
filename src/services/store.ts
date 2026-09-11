@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { supabase } from './supabase';
+import { toLocalDateStr } from '../utils/pix';
 import {
   Profile,
   Flavor,
@@ -28,7 +29,7 @@ export const generateId = () => crypto.randomUUID();
 
 const DATE_FILTER_PREF_KEY = 'brownie_date_filter_pref_v1';
 
-const getTodayDateString = () => new Date().toISOString().split('T')[0];
+const getTodayDateString = () => toLocalDateStr();
 
 const formatDateOffset = (days: number) => {
   const d = new Date();
@@ -1028,17 +1029,17 @@ function useStoreInternal() {
       const curr = new Date();
       const first = curr.getDate() - curr.getDay();
       const firstDay = new Date(curr.setDate(first));
-      startDate = firstDay.toISOString().split('T')[0];
+      startDate = toLocalDateStr(firstDay);
     } else if (option === 'this_month') {
       const date = new Date();
       const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-      startDate = firstDay.toISOString().split('T')[0];
+      startDate = toLocalDateStr(firstDay);
     } else if (option === 'last_month') {
       const date = new Date();
       const firstDay = new Date(date.getFullYear(), date.getMonth() - 1, 1);
       const lastDay = new Date(date.getFullYear(), date.getMonth(), 0);
-      startDate = firstDay.toISOString().split('T')[0];
-      endDate = lastDay.toISOString().split('T')[0];
+      startDate = toLocalDateStr(firstDay);
+      endDate = toLocalDateStr(lastDay);
     } else if (option === 'custom') {
       startDate = customStart || todayStr;
       endDate = customEnd || todayStr;
@@ -1051,7 +1052,7 @@ function useStoreInternal() {
 
   const isDateInFilter = (isoDate: string) => {
     if (!isoDate) return false;
-    const dateStr = isoDate.split('T')[0];
+    const dateStr = toLocalDateStr(isoDate);
     const { startDate, endDate } = state.dateFilter;
     return dateStr >= startDate && dateStr <= endDate;
   };
@@ -1572,7 +1573,7 @@ function useStoreInternal() {
       supplier_id: supplier.id,
       supplier_name: supplier.name,
       status: 'ordered',
-      order_date: nowIso.split('T')[0],
+      order_date: toLocalDateStr(nowIso),
       expected_delivery_date: params.expectedDeliveryDate || formatDateOffset(3).split('T')[0],
       total_amount: totalAmount,
       notes: params.notes,
@@ -1623,8 +1624,8 @@ function useStoreInternal() {
         unit_cost: item.unit_cost,
         quantity_received: item.quantity_ordered,
         quantity_remaining: item.quantity_ordered,
-        manufacturing_date: nowIso.split('T')[0],
-        expiration_date: expirationDate.split('T')[0],
+        manufacturing_date: toLocalDateStr(nowIso),
+        expiration_date: toLocalDateStr(expirationDate),
         received_at: nowIso
       });
 
@@ -1807,7 +1808,7 @@ function useStoreInternal() {
       unit_cost: cost,
       quantity_received: params.quantity,
       quantity_remaining: params.quantity,
-      manufacturing_date: nowIso.split('T')[0],
+      manufacturing_date: toLocalDateStr(nowIso),
       expiration_date: params.expirationDate,
       received_at: nowIso
     };
@@ -1878,8 +1879,8 @@ function useStoreInternal() {
       organization_id: state.settings.id,
       seller_id: seller.id,
       seller_name: seller.name,
-      period_start: selectedEntries[selectedEntries.length - 1]?.created_at.split('T')[0] || nowIso.split('T')[0],
-      period_end: nowIso.split('T')[0],
+      period_start: selectedEntries[selectedEntries.length - 1]?.created_at ? toLocalDateStr(selectedEntries[selectedEntries.length - 1].created_at) : toLocalDateStr(nowIso),
+      period_end: toLocalDateStr(nowIso),
       amount: totalAmount,
       status: 'paid',
       paid_at: nowIso,
@@ -1922,7 +1923,7 @@ function useStoreInternal() {
       category: params.category,
       description: params.description,
       amount: params.amount,
-      expense_date: params.expenseDate || nowIso.split('T')[0],
+      expense_date: params.expenseDate || toLocalDateStr(nowIso),
       created_by: state.currentUser.name,
       created_at: nowIso
     };
@@ -2268,7 +2269,7 @@ function useStoreInternal() {
 
       const recentSales = state.sales.filter(s => s.seller_id === seller.id && s.status === 'confirmed' && new Date(s.created_at) >= lookbackStart);
       const unitsSoldRecently = recentSales.reduce((sum, s) => sum + s.total_quantity, 0);
-      const sellingDays = new Set(recentSales.map(s => s.created_at.split('T')[0])).size;
+      const sellingDays = new Set(recentSales.map(s => toLocalDateStr(s.created_at))).size;
       const dailyAverage = sellingDays > 0 ? unitsSoldRecently / sellingDays : 0;
 
       const reservedUnits = state.reservations.filter(r => r.seller_id === seller.id && r.status === 'pending').reduce((sum, r) => sum + r.total_quantity, 0);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, CalendarClock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../services/store';
+import { toLocalDateStr } from '../utils/pix';
 
 interface NewReservationModalProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
 
   const [sellerId, setSellerId] = useState<string>(currentUser.id);
   const [customerName, setCustomerName] = useState('');
-  const [saleDate, setSaleDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [saleDate, setSaleDate] = useState<string>(() => toLocalDateStr());
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
   useEffect(() => {
     if (!isOpen) return;
     setCustomerName('');
-    setSaleDate(new Date().toISOString().split('T')[0]);
+    setSaleDate(toLocalDateStr());
     setQuantities({});
     setNotes('');
     setErrorMsg(null);
