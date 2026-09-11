@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../../services/store';
 import { formatCurrency, formatDateTime, formatDate, toLocalDateStr } from '../../utils/pix';
+import { useSubmitGuard } from '../../hooks/useSubmitGuard';
 
 interface OwnerInventoryProps {
   onOpenTransfer: (sellerId?: string) => void;
@@ -29,6 +30,7 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
   onOpenLoss
 }) => {
   const { state, getFlavorStock, createBatchManual, deleteBatch } = useStore();
+  const { isSubmitting, guard } = useSubmitGuard();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [batchToDelete, setBatchToDelete] = useState<string | null>(null);
   const [isAddingBatch, setIsAddingBatch] = useState(false);
@@ -47,18 +49,20 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
 
   const handleCreateBatch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newBatchFlavorId || newBatchQuantity <= 0) return;
-    createBatchManual({
-      flavorId: newBatchFlavorId,
-      quantity: Number(newBatchQuantity),
-      expirationDate: newBatchExpiration,
-      unitCost: Number(newBatchCost),
-      batchRef: newBatchRef,
-      notes: newBatchNotes
+    guard(() => {
+      if (!newBatchFlavorId || newBatchQuantity <= 0) return;
+      createBatchManual({
+        flavorId: newBatchFlavorId,
+        quantity: Number(newBatchQuantity),
+        expirationDate: newBatchExpiration,
+        unitCost: Number(newBatchCost),
+        batchRef: newBatchRef,
+        notes: newBatchNotes
+      });
+      setIsAddingBatch(false);
+      setNewBatchRef('');
+      setNewBatchNotes('');
     });
-    setIsAddingBatch(false);
-    setNewBatchRef('');
-    setNewBatchNotes('');
   };
 
   const centralLocation = state.locations.find(l => l.type === 'central') || state.locations[0];
@@ -619,9 +623,10 @@ export const OwnerInventory: React.FC<OwnerInventoryProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A]"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A] disabled:opacity-40"
                 >
-                  Confirmar Entrada
+                  {isSubmitting ? 'Salvando...' : 'Confirmar Entrada'}
                 </button>
               </div>
             </form>

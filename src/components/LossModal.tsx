@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, AlertTriangle, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../services/store';
+import { useSubmitGuard } from '../hooks/useSubmitGuard';
 
 interface LossModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface LossModalProps {
 
 export const LossModal: React.FC<LossModalProps> = ({ isOpen, onClose }) => {
   const { state, registerLoss, getFlavorStock } = useStore();
+  const { isSubmitting, guard } = useSubmitGuard();
 
   const [locationId, setLocationId] = useState<string>(state.locations[0]?.id || '');
   const [flavorId, setFlavorId] = useState<string>(state.flavors[0]?.id || '');
@@ -25,29 +27,31 @@ export const LossModal: React.FC<LossModalProps> = ({ isOpen, onClose }) => {
   const currentStock = getFlavorStock(locationId, flavorId);
 
   const handleSubmit = () => {
-    if (quantity <= 0) {
-      setErrorMsg('A quantidade deve ser maior que zero.');
-      return;
-    }
-    if (quantity > currentStock) {
-      setErrorMsg(`Estoque insuficiente no local selecionado (${currentStock} un).`);
-      return;
-    }
+    guard(() => {
+      if (quantity <= 0) {
+        setErrorMsg('A quantidade deve ser maior que zero.');
+        return;
+      }
+      if (quantity > currentStock) {
+        setErrorMsg(`Estoque insuficiente no local selecionado (${currentStock} un).`);
+        return;
+      }
 
-    const res = registerLoss({
-      locationId,
-      flavorId,
-      quantity,
-      reason,
-      notes
+      const res = registerLoss({
+        locationId,
+        flavorId,
+        quantity,
+        reason,
+        notes
+      });
+
+      if (res.success) {
+        setSuccessMsg('Perda registrada e estoque atualizado com sucesso.');
+        setTimeout(onClose, 1400);
+      } else {
+        setErrorMsg(res.error || 'Erro ao registrar perda.');
+      }
     });
-
-    if (res.success) {
-      setSuccessMsg('Perda registrada e estoque atualizado com sucesso.');
-      setTimeout(onClose, 1400);
-    } else {
-      setErrorMsg(res.error || 'Erro ao registrar perda.');
-    }
   };
 
   return (
@@ -155,7 +159,8 @@ export const LossModal: React.FC<LossModalProps> = ({ isOpen, onClose }) => {
             <button onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#6B6B6B]">Cancelar</button>
             <button
               onClick={handleSubmit}
-              className="px-4 py-2 bg-[#B3403D] text-white text-xs font-bold rounded-xl hover:bg-[#8A2E2E]"
+              disabled={isSubmitting}
+              className="px-4 py-2 bg-[#B3403D] text-white text-xs font-bold rounded-xl hover:bg-[#8A2E2E] disabled:opacity-40"
             >
               Confirmar Baixa
             </button>

@@ -16,6 +16,7 @@ import {
   Clock
 } from 'lucide-react';
 import { useStore } from '../services/store';
+import { useSubmitGuard } from '../hooks/useSubmitGuard';
 import { formatCurrency } from '../utils/pix';
 import { Sale } from '../types';
 
@@ -29,6 +30,7 @@ type Step = 1 | 2 | 3 | 4 | 5;
 
 export const NewSaleModal: React.FC<NewSaleModalProps> = ({ isOpen, onClose, onSaleComplete }) => {
   const { state, confirmSale, getSellerLocation, getFlavorStock } = useStore();
+  const { guard: guardConfirm } = useSubmitGuard();
   const [selectedSellerId, setSelectedSellerId] = useState<string>(state.currentUser.id);
 
   const currentSeller = state.profiles.find(p => p.id === selectedSellerId) || state.currentUser;
@@ -166,33 +168,36 @@ export const NewSaleModal: React.FC<NewSaleModalProps> = ({ isOpen, onClose, onS
     }
   };
 
-  // Confirm Sale in Step 5
+  // Confirm Sale in Step 5. Wrapped in guardConfirm so a double tap on
+  // "Sim, confirmar" can never record the same sale twice — see useSubmitGuard.
   const handleConfirmSale = () => {
-    setIsProcessing(true);
-    setShowConfirmDialog(false);
+    guardConfirm(() => {
+      setIsProcessing(true);
+      setShowConfirmDialog(false);
 
-    // Build items payload
-    const items: { flavorId: string; quantity: number }[] = Object.entries(flavorSelections).map(([flavorId, quantity]) => ({
-      flavorId,
-      quantity: Number(quantity)
-    }));
+      // Build items payload
+      const items: { flavorId: string; quantity: number }[] = Object.entries(flavorSelections).map(([flavorId, quantity]) => ({
+        flavorId,
+        quantity: Number(quantity)
+      }));
 
-    const result = confirmSale({
-      sellerId: currentSeller.id,
-      items,
-      applyDiscount
-    });
+      const result = confirmSale({
+        sellerId: currentSeller.id,
+        items,
+        applyDiscount
+      });
 
-    setIsProcessing(false);
+      setIsProcessing(false);
 
-    if (result.success && result.sale) {
-      setCompletedSale(result.sale);
-      if (onSaleComplete) {
-        onSaleComplete(result.sale);
+      if (result.success && result.sale) {
+        setCompletedSale(result.sale);
+        if (onSaleComplete) {
+          onSaleComplete(result.sale);
+        }
+      } else {
+        setErrorMessage(result.error || 'Erro ao confirmar a venda.');
       }
-    } else {
-      setErrorMessage(result.error || 'Erro ao confirmar a venda.');
-    }
+    });
   };
 
   return (

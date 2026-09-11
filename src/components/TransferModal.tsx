@@ -11,6 +11,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useStore } from '../services/store';
+import { useSubmitGuard } from '../hooks/useSubmitGuard';
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
     getFlavorStock
   } = useStore();
 
+  const { isSubmitting, guard } = useSubmitGuard();
   const centralLocation = getCentralLocation();
   const sellers = state.profiles.filter(p => p.role === 'seller' && p.status === 'active');
 
@@ -108,34 +110,36 @@ export const TransferModal: React.FC<TransferModalProps> = ({
   };
 
   const handleTransfer = () => {
-    if (!selectedSellerId) {
-      setErrorMsg('Selecione um vendedor.');
-      return;
-    }
+    guard(() => {
+      if (!selectedSellerId) {
+        setErrorMsg('Selecione um vendedor.');
+        return;
+      }
 
-    if (totalTransferUnits <= 0) {
-      setErrorMsg('Informe ao menos uma unidade para transferir.');
-      return;
-    }
+      if (totalTransferUnits <= 0) {
+        setErrorMsg('Informe ao menos uma unidade para transferir.');
+        return;
+      }
 
-    const items: { flavorId: string; quantity: number }[] = Object.entries(quantities)
-      .filter(([_, qty]) => Number(qty) > 0)
-      .map(([flavorId, quantity]) => ({ flavorId, quantity: Number(quantity) }));
+      const items: { flavorId: string; quantity: number }[] = Object.entries(quantities)
+        .filter(([_, qty]) => Number(qty) > 0)
+        .map(([flavorId, quantity]) => ({ flavorId, quantity: Number(quantity) }));
 
-    const res = transferToSeller({
-      sellerId: selectedSellerId,
-      items,
-      notes
+      const res = transferToSeller({
+        sellerId: selectedSellerId,
+        items,
+        notes
+      });
+
+      if (res.success) {
+        setSuccessMsg(`Transferência de ${totalTransferUnits} brownies concluída com sucesso!`);
+        setTimeout(() => {
+          onClose();
+        }, 1500);
+      } else {
+        setErrorMsg(res.error || 'Erro ao realizar a transferência.');
+      }
     });
-
-    if (res.success) {
-      setSuccessMsg(`Transferência de ${totalTransferUnits} brownies concluída com sucesso!`);
-      setTimeout(() => {
-        onClose();
-      }, 1500);
-    } else {
-      setErrorMsg(res.error || 'Erro ao realizar a transferência.');
-    }
   };
 
   return (
@@ -301,7 +305,7 @@ export const TransferModal: React.FC<TransferModalProps> = ({
                 type="button"
                 id="btn-confirm-transfer"
                 onClick={handleTransfer}
-                disabled={totalTransferUnits <= 0}
+                disabled={totalTransferUnits <= 0 || isSubmitting}
                 className="px-5 py-2.5 rounded-xl bg-[#141414] text-white text-xs font-bold hover:bg-[#0A0A0A] transition disabled:opacity-40 shadow-sm flex items-center gap-1.5"
               >
                 <span>Confirmar Saída</span>

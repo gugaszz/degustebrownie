@@ -12,10 +12,12 @@ import {
   Trash2
 } from 'lucide-react';
 import { useStore } from '../../services/store';
+import { useSubmitGuard } from '../../hooks/useSubmitGuard';
 import { formatCurrency, formatDate } from '../../utils/pix';
 
 export const OwnerFinancial: React.FC = () => {
   const { state, isDateInFilter, addExpense, deleteExpense } = useStore();
+  const { isSubmitting, guard } = useSubmitGuard();
 
   const [isAddingExpense, setIsAddingExpense] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
@@ -44,15 +46,17 @@ export const OwnerFinancial: React.FC = () => {
 
   const handleAddExpense = (e: React.FormEvent) => {
     e.preventDefault();
-    if (expenseAmt <= 0 || !expenseDesc.trim()) return;
-    addExpense({
-      description: expenseDesc,
-      amount: expenseAmt,
-      category: expenseCat
+    guard(() => {
+      if (expenseAmt <= 0 || !expenseDesc.trim()) return;
+      addExpense({
+        description: expenseDesc,
+        amount: expenseAmt,
+        category: expenseCat
+      });
+      setExpenseDesc('');
+      setExpenseAmt(0);
+      setIsAddingExpense(false);
     });
-    setExpenseDesc('');
-    setExpenseAmt(0);
-    setIsAddingExpense(false);
   };
 
   return (
@@ -303,9 +307,10 @@ export const OwnerFinancial: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl disabled:opacity-40"
                 >
-                  Salvar Despesa
+                  {isSubmitting ? 'Salvando...' : 'Salvar Despesa'}
                 </button>
               </div>
             </form>

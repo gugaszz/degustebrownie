@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, PackagePlus, Plus, Minus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../services/store';
 import { formatCurrency, toLocalDateStr } from '../utils/pix';
+import { useSubmitGuard } from '../hooks/useSubmitGuard';
 
 interface NewPurchaseModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface NewPurchaseModalProps {
 
 export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({ isOpen, onClose }) => {
   const { state, createPurchaseOrder } = useStore();
+  const { isSubmitting, guard } = useSubmitGuard();
   const suppliers = state.suppliers.filter(s => s.active);
   const activeFlavors = state.flavors.filter(f => f.active);
 
@@ -55,36 +57,38 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({ isOpen, onCl
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supplierId) {
-      setErrorMsg('Selecione um fornecedor.');
-      return;
-    }
-    if (totalUnits <= 0) {
-      setErrorMsg('Informe ao menos uma unidade no pedido.');
-      return;
-    }
+    guard(() => {
+      if (!supplierId) {
+        setErrorMsg('Selecione um fornecedor.');
+        return;
+      }
+      if (totalUnits <= 0) {
+        setErrorMsg('Informe ao menos uma unidade no pedido.');
+        return;
+      }
 
-    const items: { flavorId: string; quantity: number; unitCost: number }[] = Object.entries(quantities)
-      .filter(([_, q]) => Number(q) > 0)
-      .map(([flavorId, quantity]) => ({
-        flavorId,
-        quantity: Number(quantity),
-        unitCost: Number(unitCost)
-      }));
+      const items: { flavorId: string; quantity: number; unitCost: number }[] = Object.entries(quantities)
+        .filter(([_, q]) => Number(q) > 0)
+        .map(([flavorId, quantity]) => ({
+          flavorId,
+          quantity: Number(quantity),
+          unitCost: Number(unitCost)
+        }));
 
-    const res = createPurchaseOrder({
-      supplierId,
-      items,
-      expectedDeliveryDate: expectedDate,
-      notes
+      const res = createPurchaseOrder({
+        supplierId,
+        items,
+        expectedDeliveryDate: expectedDate,
+        notes
+      });
+
+      if (res.success) {
+        setSuccessMsg(`Pedido de compra de ${totalUnits} brownies criado!`);
+        setTimeout(onClose, 1400);
+      } else {
+        setErrorMsg(res.error || 'Erro ao criar pedido.');
+      }
     });
-
-    if (res.success) {
-      setSuccessMsg(`Pedido de compra de ${totalUnits} brownies criado!`);
-      setTimeout(onClose, 1400);
-    } else {
-      setErrorMsg(res.error || 'Erro ao criar pedido.');
-    }
   };
 
   return (
@@ -225,9 +229,10 @@ export const NewPurchaseModal: React.FC<NewPurchaseModalProps> = ({ isOpen, onCl
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A]"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A] disabled:opacity-40"
               >
-                Criar Pedido
+                {isSubmitting ? 'Criando...' : 'Criar Pedido'}
               </button>
             </div>
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, CalendarClock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../services/store';
 import { toLocalDateStr } from '../utils/pix';
+import { useSubmitGuard } from '../hooks/useSubmitGuard';
 
 interface NewReservationModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface NewReservationModalProps {
 
 export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen, onClose }) => {
   const { state, currentUser, createReservation } = useStore();
+  const { isSubmitting, guard } = useSubmitGuard();
   const isOwner = currentUser.role === 'owner';
   const sellers = state.profiles.filter(p => p.role === 'seller' && p.status === 'active');
   const activeFlavors = state.flavors.filter(f => f.active);
@@ -45,38 +47,39 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    guard(() => {
+      if (isOwner && !sellerId) {
+        setErrorMsg('Selecione para qual vendedor é a reserva.');
+        return;
+      }
+      if (!customerName.trim()) {
+        setErrorMsg('Informe o nome do cliente.');
+        return;
+      }
+      if (totalUnits <= 0) {
+        setErrorMsg('Informe a quantidade de brownies por sabor.');
+        return;
+      }
 
-    if (isOwner && !sellerId) {
-      setErrorMsg('Selecione para qual vendedor é a reserva.');
-      return;
-    }
-    if (!customerName.trim()) {
-      setErrorMsg('Informe o nome do cliente.');
-      return;
-    }
-    if (totalUnits <= 0) {
-      setErrorMsg('Informe a quantidade de brownies por sabor.');
-      return;
-    }
+      const items = Object.entries(quantities)
+        .filter(([_, q]) => Number(q) > 0)
+        .map(([flavorId, quantity]) => ({ flavorId, quantity: Number(quantity) }));
 
-    const items = Object.entries(quantities)
-      .filter(([_, q]) => Number(q) > 0)
-      .map(([flavorId, quantity]) => ({ flavorId, quantity: Number(quantity) }));
+      const res = createReservation({
+        sellerId: isOwner ? sellerId : currentUser.id,
+        customerName,
+        saleDate,
+        items,
+        notes
+      });
 
-    const res = createReservation({
-      sellerId: isOwner ? sellerId : currentUser.id,
-      customerName,
-      saleDate,
-      items,
-      notes
+      if (res.success) {
+        setSuccessMsg(`Reserva de ${totalUnits} brownies registrada para ${customerName}!`);
+        setTimeout(onClose, 1400);
+      } else {
+        setErrorMsg(res.error || 'Erro ao registrar a reserva.');
+      }
     });
-
-    if (res.success) {
-      setSuccessMsg(`Reserva de ${totalUnits} brownies registrada para ${customerName}!`);
-      setTimeout(onClose, 1400);
-    } else {
-      setErrorMsg(res.error || 'Erro ao registrar a reserva.');
-    }
   };
 
   return (
@@ -209,9 +212,10 @@ export const NewReservationModal: React.FC<NewReservationModalProps> = ({ isOpen
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A]"
+                disabled={isSubmitting}
+                className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl hover:bg-[#0A0A0A] disabled:opacity-40"
               >
-                Registrar Reserva
+                {isSubmitting ? 'Registrando...' : 'Registrar Reserva'}
               </button>
             </div>
           </div>

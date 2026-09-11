@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, ArrowDownLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useStore } from '../services/store';
+import { useSubmitGuard } from '../hooks/useSubmitGuard';
 
 interface ReturnStockModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface ReturnStockModalProps {
 
 export const ReturnStockModal: React.FC<ReturnStockModalProps> = ({ isOpen, onClose }) => {
   const { state, returnToCentral, getSellerLocation, getFlavorStock } = useStore();
+  const { isSubmitting, guard } = useSubmitGuard();
   const sellers = state.profiles.filter(p => p.role === 'seller' && p.status === 'active');
 
   const [selectedSellerId, setSelectedSellerId] = useState<string>(sellers[0]?.id || '');
@@ -30,27 +32,29 @@ export const ReturnStockModal: React.FC<ReturnStockModalProps> = ({ isOpen, onCl
   };
 
   const handleReturn = () => {
-    if (totalReturnUnits <= 0) {
-      setErrorMsg('Informe ao menos uma unidade para devolver.');
-      return;
-    }
+    guard(() => {
+      if (totalReturnUnits <= 0) {
+        setErrorMsg('Informe ao menos uma unidade para devolver.');
+        return;
+      }
 
-    const items: { flavorId: string; quantity: number }[] = Object.entries(quantities)
-      .filter(([_, qty]) => Number(qty) > 0)
-      .map(([flavorId, quantity]) => ({ flavorId, quantity: Number(quantity) }));
+      const items: { flavorId: string; quantity: number }[] = Object.entries(quantities)
+        .filter(([_, qty]) => Number(qty) > 0)
+        .map(([flavorId, quantity]) => ({ flavorId, quantity: Number(quantity) }));
 
-    const res = returnToCentral({
-      sellerId: selectedSellerId,
-      items,
-      notes
+      const res = returnToCentral({
+        sellerId: selectedSellerId,
+        items,
+        notes
+      });
+
+      if (res.success) {
+        setSuccessMsg(`Devolução de ${totalReturnUnits} brownies registrada com sucesso!`);
+        setTimeout(onClose, 1400);
+      } else {
+        setErrorMsg(res.error || 'Erro ao processar devolução.');
+      }
     });
-
-    if (res.success) {
-      setSuccessMsg(`Devolução de ${totalReturnUnits} brownies registrada com sucesso!`);
-      setTimeout(onClose, 1400);
-    } else {
-      setErrorMsg(res.error || 'Erro ao processar devolução.');
-    }
   };
 
   return (
@@ -143,7 +147,7 @@ export const ReturnStockModal: React.FC<ReturnStockModalProps> = ({ isOpen, onCl
               <button onClick={onClose} className="px-3.5 py-2 text-xs font-semibold text-[#6B6B6B]">Cancelar</button>
               <button
                 onClick={handleReturn}
-                disabled={totalReturnUnits <= 0}
+                disabled={totalReturnUnits <= 0 || isSubmitting}
                 className="px-4 py-2 bg-[#141414] text-white text-xs font-bold rounded-xl disabled:opacity-40"
               >
                 Confirmar Devolução

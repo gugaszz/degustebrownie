@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, BadgeDollarSign, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useStore } from '../services/store';
+import { useSubmitGuard } from '../hooks/useSubmitGuard';
 import { formatCurrency, formatDateTime } from '../utils/pix';
 
 interface PayoutModalProps {
@@ -11,6 +12,7 @@ interface PayoutModalProps {
 
 export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, sellerId }) => {
   const { state, payCommission } = useStore();
+  const { isSubmitting, guard } = useSubmitGuard();
   const sellers = state.profiles.filter(p => p.role === 'seller');
 
   const [selectedSellerId, setSelectedSellerId] = useState<string>(sellerId || sellers[0]?.id || '');
@@ -29,25 +31,27 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, selle
   const totalPending = pendingEntries.reduce((sum, e) => sum + e.amount, 0);
 
   const handlePayout = () => {
-    if (pendingEntries.length === 0) {
-      setErrorMsg('Não há comissões pendentes para este vendedor.');
-      return;
-    }
+    guard(() => {
+      if (pendingEntries.length === 0) {
+        setErrorMsg('Não há comissões pendentes para este vendedor.');
+        return;
+      }
 
-    const entryIds = pendingEntries.map(e => e.id);
-    const res = payCommission({
-      sellerId: selectedSellerId,
-      entryIds,
-      paymentMethod,
-      notes
+      const entryIds = pendingEntries.map(e => e.id);
+      const res = payCommission({
+        sellerId: selectedSellerId,
+        entryIds,
+        paymentMethod,
+        notes
+      });
+
+      if (res.success) {
+        setSuccessMsg(`Pagamento de ${formatCurrency(totalPending)} registrado com sucesso!`);
+        setTimeout(onClose, 1400);
+      } else {
+        setErrorMsg(res.error || 'Erro ao processar repasse.');
+      }
     });
-
-    if (res.success) {
-      setSuccessMsg(`Pagamento de ${formatCurrency(totalPending)} registrado com sucesso!`);
-      setTimeout(onClose, 1400);
-    } else {
-      setErrorMsg(res.error || 'Erro ao processar repasse.');
-    }
   };
 
   return (
@@ -164,7 +168,7 @@ export const PayoutModal: React.FC<PayoutModalProps> = ({ isOpen, onClose, selle
             </button>
             <button
               onClick={handlePayout}
-              disabled={totalPending <= 0}
+              disabled={totalPending <= 0 || isSubmitting}
               className="px-5 py-2 bg-[#1B8A4F] text-white text-xs font-bold rounded-xl hover:bg-[#145C36] disabled:opacity-40"
             >
               Confirmar Pagamento
